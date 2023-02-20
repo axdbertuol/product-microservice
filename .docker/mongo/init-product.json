@@ -1,0 +1,16 @@
+[
+  {
+    "_id": "1",
+    "name": "Primeiro",
+    "description": "Primeiro",
+    "price": 2,
+    "category": "4"
+  },
+  {
+    "_id": "2",
+    "name": "Segundo",
+    "description": "Primeiro",
+    "price": 3,
+    "category": "4"
+  }
+]

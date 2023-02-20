@@ -1,11 +1,11 @@
-version: '3'
+version: '3.8'
 
 services:
-  
+
   app:
     build: .
     entrypoint: ./.docker/entrypoint.sh
-    ports: 
+    ports:
       - 3000:3000
     volumes:
       - .:/home/node/app
@@ -13,9 +13,9 @@ services:
       - "host.docker.internal:172.17.0.1"
     depends_on:
       - db
-  
+
   db:
-    image: mongo:4.4.4
+    image: mongo
     restart: always
     volumes:
       - ./.docker/dbdata:/data/db
@@ -24,7 +24,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
       - MONGO_INITDB_DATABASE=product-microservice-db-test
-  
+
   mongo-express:
     image: mongo-express
     restart: always

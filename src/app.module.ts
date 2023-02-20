@@ -9,7 +9,7 @@ import { ProductsModule } from './products/product.module'
   imports: [
     ConfigModule.forRoot(),
     ProductsModule,
-    MongooseModule.forRoot(process.env.MONGO_DSN ?? '', {
+    MongooseModule.forRoot(process.env.DATABASE_URL ?? '', {
       useNewUrlParser: true,
     }),
   ],
