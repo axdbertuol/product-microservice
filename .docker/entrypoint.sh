@@ -5,4 +5,4 @@ if [ ! -f ".env" ]; then
 fi
 
 pnpm install
-pnpm start:dev
+pnpm start:debug

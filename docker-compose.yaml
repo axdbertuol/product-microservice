@@ -1,18 +1,24 @@
 version: '3.8'
 
 services:
-
   app:
-    build: .
+    build:
+      context: .
+      target: development
     entrypoint: ./.docker/entrypoint.sh
     ports:
       - 3000:3000
+      - 9229:9229
+    tty: true
     volumes:
       - .:/home/node/app
+      - ./node_modules/:/home/node/app/node_modules
     extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - 'host.docker.internal:172.17.0.1'
     depends_on:
       - db
+    networks:
+      - network
 
   db:
     image: mongo
@@ -24,6 +30,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
       - MONGO_INITDB_DATABASE=product-microservice-db-test
+    networks:
+      - network
 
   mongo-express:
     image: mongo-express
@@ -38,3 +46,9 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=root
     depends_on:
       - db
+    networks:
+      - network
+
+networks: 
+  network:
+    driver: bridge
