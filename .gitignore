@@ -40,3 +40,5 @@ lerna-debug.log*
 
 .history/
 package-lock.json
+
+.pnpm-store

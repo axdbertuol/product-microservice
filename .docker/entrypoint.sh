@@ -4,6 +4,5 @@ if [ ! -f ".env" ]; then
   cp .env.example .env
 fi
 
-npm install pnpm
-pnpm install 
-pnpm run start:dev
+pnpm install
+pnpm start:dev
