@@ -9,8 +9,10 @@ import { CategorySchema } from './entities/category.entity'
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'Product', schema: ProductSchema }]),
-    MongooseModule.forFeature([{ name: 'Category', schema: CategorySchema }]),
+    MongooseModule.forFeature([
+      { name: 'Product', schema: ProductSchema },
+      { name: 'Category', schema: CategorySchema },
+    ]),
   ],
   controllers: [ProductController],
   providers: [ProductService],
