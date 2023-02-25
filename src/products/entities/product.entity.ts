@@ -10,7 +10,7 @@ export class Product {
   name: string
 
   @Prop()
-  description: string
+  description: string | undefined
 
   @Prop({ required: true })
   price: number
