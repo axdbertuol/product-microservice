@@ -17,6 +17,12 @@ export class ProductController {
   async findAll(): Promise<Product[]> {
     return this.productService.findAll()
   }
+  @Get()
+  async findAllByCategory(
+    @Param('categoryName') categoryName: string,
+  ): Promise<Product[] | null> {
+    return this.productService.findAllByCategory(categoryName)
+  }
 
   @Post()
   async create(@Body() product: CreateProductDto): Promise<Product> {
