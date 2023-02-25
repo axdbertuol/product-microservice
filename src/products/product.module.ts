@@ -6,6 +6,7 @@ import { ProductSchema } from './entities/product.entity'
 import { ProductService } from './product.service'
 import { ProductController } from './product.controller'
 import { CategorySchema } from './entities/category.entity'
+import { ProductRepository } from './repository/product.repository'
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { CategorySchema } from './entities/category.entity'
     ]),
   ],
   controllers: [ProductController],
-  providers: [ProductService],
+  providers: [ProductService, ProductRepository],
 })
 export class ProductsModule {}
