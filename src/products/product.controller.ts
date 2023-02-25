@@ -9,7 +9,6 @@ export class ProductController {
 
   @Get(':id')
   async find(@Param('id') id: string): Promise<Product | null> {
-    debugger
     return this.productService.find(id)
   }
 
