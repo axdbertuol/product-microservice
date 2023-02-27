@@ -25,8 +25,8 @@ export class ProductRepository implements RepositoryInterface {
   }
 
   async create(product: CreateProductDto): Promise<Product> {
-    const newProduct = new this.productModel(product)
-    return newProduct.save()
+    const newProduct = (await this.productModel.create(product)).save()
+    return newProduct
   }
 
   async update(id: string, product: Product): Promise<Product | null> {

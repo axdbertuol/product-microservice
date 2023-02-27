@@ -9,8 +9,8 @@ export class Product {
   @Prop({ required: true })
   name: string
 
-  @Prop()
-  description: string | undefined
+  @Prop({ required: false, default: '' })
+  description: string
 
   @Prop({ required: true })
   price: number
