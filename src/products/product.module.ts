@@ -3,8 +3,8 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { ProductSchema } from './entities/product.entity'
-import { ProductService } from './product.service'
-import { ProductController } from './product.controller'
+import { ProductService } from './services/product.service'
+import { ProductController } from './controllers/product.controller'
 import { CategorySchema } from './entities/category.entity'
 import { ProductRepository } from './repository/product.repository'
 
