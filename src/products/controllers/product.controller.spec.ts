@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ProductController } from './product.controller'
-import { ProductService } from './product.service'
-import { CreateProductDto } from './dto/create-product.dto'
-import { Product } from './entities/product.entity'
-import { Category } from './entities/category.entity'
-import { ProductRepository } from './repository/product.repository'
+import { ProductService } from '../services/product.service'
+import { CreateProductDto } from '../dto/create-product.dto'
+import { Product } from '../entities/product.entity'
+import { Category } from '../entities/category.entity'
+import { ProductRepository } from '../repository/product.repository'
 
 jest.mock('./repository/product.repository')
 describe('ProductController', () => {

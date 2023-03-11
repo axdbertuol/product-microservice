@@ -1,12 +1,11 @@
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Model, Query } from 'mongoose'
+import { Model } from 'mongoose'
 import { Product, ProductDocument } from '../entities/product.entity'
 import { CreateProductDto } from '../dto/create-product.dto'
 import { ProductRepository } from './product.repository'
 import { Category } from '../entities/category.entity'
 import { UpdateProductDto } from '../dto/update-product.dto'
-import { resolve } from 'path'
 
 describe('ProductRepository', () => {
   let repository: ProductRepository
