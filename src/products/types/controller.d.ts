@@ -1,3 +1,2 @@
-export interface ProductControllerInterface extends CRUD {
-  findAllByCategory(id: string): Promise<T[] | null>
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ProductControllerInterface extends CRUD {}
