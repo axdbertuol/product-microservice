@@ -40,13 +40,13 @@ describe('ProductController', () => {
     })
   })
 
-  describe('findAllByCategory', () => {
+  describe('findAll with category', () => {
     it('should return an array of products by category', async () => {
       const result: Product[] = [new Product(), new Product()]
       const categoryName = 'category'
       jest.spyOn(productService, 'findAllByCategory').mockResolvedValue(result)
 
-      expect(await controller.findAllByCategory(categoryName)).toBe(result)
+      expect(await controller.findAll(categoryName)).toBe(result)
     })
   })
 

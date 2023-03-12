@@ -96,7 +96,9 @@ describe('ProductRepository', () => {
       const expectedProducts = [new Product(), new Product()]
 
       productModel.find = jest.fn().mockImplementation(() => ({
-        exec: () => Promise.resolve(expectedProducts),
+        populate: () => ({
+          exec: () => Promise.resolve(expectedProducts),
+        }),
       }))
 
       const result = await repository.findAll()
