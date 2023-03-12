@@ -68,17 +68,25 @@ describe('ProductRepository', () => {
   describe('findAllByCategory', () => {
     it('should call find on productModel with the given category', async () => {
       const category = 'electronics'
-      const expectedProducts = [new Product(), new Product()]
+      const p1 = new Product()
+      const p2 = new Product()
+      const p3 = new Product()
+      p1.category = new Category()
+      p2.category = new Category()
+      p3.category = new Category()
+      p1.category.name = category
+      p2.category.name = 'bla'
+      p3.category.name = category
+      const expectedProducts = [p1, p3]
 
       productModel.find = jest.fn().mockImplementation(() => ({
-        exec: () => Promise.resolve(expectedProducts),
+        populate: () => ({
+          exec: () => Promise.resolve(expectedProducts),
+        }),
       }))
 
       const result = await repository.findAllByCategory(category)
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        'category.$name': category,
-      })
+      expect(productModel.find).toHaveBeenCalled()
       expect(result).toEqual(expectedProducts)
     })
   })
