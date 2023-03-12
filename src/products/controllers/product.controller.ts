@@ -24,15 +24,10 @@ export class ProductController implements ProductControllerInterface {
   }
 
   @Get()
-  async findAllByCategory(
-    @Query('categoryName') categoryName: string,
+  async findAll(
+    @Query('categoryName') categoryName?: string,
   ): Promise<Product[] | null> {
-    return this.productService.findAllByCategory(categoryName)
-  }
-
-  @Get()
-  async findAll(): Promise<Product[]> {
-    return this.productService.findAll()
+    return this.productService.findAll(categoryName)
   }
 
   @Post()

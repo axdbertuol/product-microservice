@@ -28,7 +28,7 @@ export class ProductRepository implements ProductRepositoryInterface {
   }
 
   async findAll(): Promise<Product[]> {
-    return this.productModel.find().exec()
+    return this.productModel.find().populate({ path: 'category' }).exec()
   }
 
   async create(product: CreateProductDto): Promise<Product> {

@@ -13,11 +13,12 @@ export class ProductService implements ProductServiceInterface {
     return this.productRepository.find(id)
   }
 
-  async findAllByCategory(category: string): Promise<Product[] | null> {
+  async findAllByCategory(category: string): Promise<Product[]> {
     return this.productRepository.findAllByCategory(category)
   }
 
-  async findAll(): Promise<Product[]> {
+  async findAll(category?: string): Promise<Product[]> {
+    if (category) return this.findAllByCategory(category)
     return this.productRepository.findAll()
   }
 
