@@ -19,6 +19,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src", "src/**/*", "src/products/**/*", "test"
-  ]
+    "src", "src/**/*", "src/products/**/*" ]
 }
