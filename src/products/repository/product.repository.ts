@@ -17,7 +17,14 @@ export class ProductRepository implements ProductRepositoryInterface {
   }
 
   async findAllByCategory(category: string): Promise<Product[]> {
-    return this.productModel.find({ 'category.$name': category }).exec()
+    return this.productModel
+      .find()
+      .populate({
+        path: 'category',
+        match: { name: category },
+      })
+      .exec()
+      .then((res) => res.filter((prod) => prod.category))
   }
 
   async findAll(): Promise<Product[]> {

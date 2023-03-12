@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Put, Delete, Param } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Delete,
+  Param,
+  Query,
+} from '@nestjs/common'
 import { Product } from '../entities/product.entity'
 import { ProductService } from '../services/product.service'
 import { CreateProductDto } from '../dto/create-product.dto'
@@ -15,14 +24,15 @@ export class ProductController implements ProductControllerInterface {
   }
 
   @Get()
-  async findAll(): Promise<Product[]> {
-    return this.productService.findAll()
-  }
-  @Get()
   async findAllByCategory(
-    @Param('categoryName') categoryName: string,
+    @Query('categoryName') categoryName: string,
   ): Promise<Product[] | null> {
     return this.productService.findAllByCategory(categoryName)
+  }
+
+  @Get()
+  async findAll(): Promise<Product[]> {
+    return this.productService.findAll()
   }
 
   @Post()
