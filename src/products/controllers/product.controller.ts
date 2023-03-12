@@ -3,9 +3,10 @@ import { Product } from '../entities/product.entity'
 import { ProductService } from '../services/product.service'
 import { CreateProductDto } from '../dto/create-product.dto'
 import { UpdateProductDto } from '../dto/update-product.dto'
+import { ProductControllerInterface } from '../types/controller.d'
 
 @Controller('products')
-export class ProductController {
+export class ProductController implements ProductControllerInterface {
   constructor(private readonly productService: ProductService) {}
 
   @Get(':id')

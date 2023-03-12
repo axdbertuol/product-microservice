@@ -3,9 +3,10 @@ import { Product } from '../entities/product.entity'
 import { CreateProductDto } from '../dto/create-product.dto'
 import { ProductRepository } from '../repository/product.repository'
 import { UpdateProductDto } from '../dto/update-product.dto'
+import { ProductServiceInterface } from '../types/service'
 
 @Injectable()
-export class ProductService {
+export class ProductService implements ProductServiceInterface {
   constructor(private readonly productRepository: ProductRepository) {}
 
   async find(id: string): Promise<Product | null> {

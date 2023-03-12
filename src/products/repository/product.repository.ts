@@ -3,10 +3,10 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { Product, ProductDocument } from '../entities/product.entity'
 import { CreateProductDto } from '../dto/create-product.dto'
-import { RepositoryInterface } from '../types/repository'
+import { ProductRepositoryInterface } from '../types/repository'
 
 @Injectable()
-export class ProductRepository implements RepositoryInterface {
+export class ProductRepository implements ProductRepositoryInterface {
   constructor(
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
