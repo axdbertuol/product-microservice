@@ -6,4 +6,8 @@ fi
 
 pnpm install
 pnpm test
-# pnpm start:debug
+if [ -e $DEBUG ]; then
+  pnpm start:debug
+else
+  pnpm start
+fi
