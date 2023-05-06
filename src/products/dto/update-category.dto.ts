@@ -1,3 +1,3 @@
-export interface UpdateCategoryDto {
+export class UpdateCategoryDto {
   readonly name?: string
 }
