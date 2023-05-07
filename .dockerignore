@@ -4,6 +4,7 @@
 coverage
 docker-compose.yml
 README.md
+.docker/dbdata
 
 # Node Files #
 node_modules
