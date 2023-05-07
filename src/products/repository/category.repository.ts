@@ -21,8 +21,8 @@ export class CategoryRepository implements CRUD {
   }
 
   async create(category: CreateCategoryDto): Promise<Category> {
-    const newCategory = (await this.categoryModel.create(category)).save()
-    return newCategory
+    const newCategory = await this.categoryModel.create(category)
+    return newCategory as Category
   }
 
   async update(id: string, category: Category): Promise<Category | null> {
