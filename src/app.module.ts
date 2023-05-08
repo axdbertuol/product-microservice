@@ -1,17 +1,15 @@
 import { Module } from '@nestjs/common'
-import { MongooseModule } from '@nestjs/mongoose'
 import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { ProductsModule } from './products/product.module'
+import { DatabaseModule } from './database/database.module'
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     ProductsModule,
-    MongooseModule.forRoot(process.env.DATABASE_URL ?? '', {
-      useNewUrlParser: true,
-    }),
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
