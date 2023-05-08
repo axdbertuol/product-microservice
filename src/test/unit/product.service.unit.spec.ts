@@ -5,7 +5,7 @@ import { CreateProductDto } from '../../products/dto/create-product.dto'
 import { Product } from '../../products/entities/product.entity'
 import { Category } from '../../products/entities/category.entity'
 
-jest.mock('../repository/product.repository')
+jest.mock('../../products/repository/product.repository')
 describe('ProductService', () => {
   let service: ProductService
   let repository: ProductRepository

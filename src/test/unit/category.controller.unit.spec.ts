@@ -6,7 +6,7 @@ import { CreateCategoryDto } from '../../products/dto/create-category.dto'
 import { UpdateCategoryDto } from '../../products/dto/update-category.dto'
 import { CategoryRepository } from '../../products/repository/category.repository'
 
-jest.mock('../repository/category.repository')
+jest.mock('../../products/repository/category.repository')
 describe('CategoryController', () => {
   let controller: CategoryController
   let categoryService: CategoryService

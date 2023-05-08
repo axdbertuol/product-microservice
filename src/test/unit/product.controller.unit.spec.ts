@@ -6,7 +6,7 @@ import { Product } from '../../products/entities/product.entity'
 import { Category } from '../../products/entities/category.entity'
 import { ProductRepository } from '../../products/repository/product.repository'
 
-jest.mock('../repository/product.repository')
+jest.mock('../../products/repository/product.repository')
 describe('ProductController', () => {
   let controller: ProductController
   let productService: ProductService
