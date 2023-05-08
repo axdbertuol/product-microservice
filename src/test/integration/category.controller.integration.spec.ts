@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing'
 import { HttpServer, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
-import { AppModule } from '../../../app.module'
+import { AppModule } from '../../app.module'
 import { Connection } from 'mongoose'
-import { DatabaseService } from '../../../database/database.service'
+import { DatabaseService } from '../../database/database.service'
 
 describe('CategoryController integration', () => {
   let app: INestApplication

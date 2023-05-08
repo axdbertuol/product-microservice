@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { ProductService } from '../../services/product.service'
-import { ProductRepository } from '../../repository/product.repository'
-import { CreateProductDto } from '../../dto/create-product.dto'
-import { Product } from '../../entities/product.entity'
-import { Category } from '../../entities/category.entity'
+import { ProductService } from '../../products/services/product.service'
+import { ProductRepository } from '../../products/repository/product.repository'
+import { CreateProductDto } from '../../products/dto/create-product.dto'
+import { Product } from '../../products/entities/product.entity'
+import { Category } from '../../products/entities/category.entity'
 
 jest.mock('../repository/product.repository')
 describe('ProductService', () => {

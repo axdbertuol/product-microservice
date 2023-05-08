@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { CategoryService } from '../../services/category.service'
-import { CategoryRepository } from '../../repository/category.repository'
-import { Category } from '../../entities/category.entity'
+import { CategoryService } from '../../products/services/category.service'
+import { CategoryRepository } from '../../products/repository/category.repository'
+import { Category } from '../../products/entities/category.entity'
 import mongoose from 'mongoose'
-import { CreateCategoryDto } from '../../dto/create-category.dto'
-import { UpdateCategoryDto } from '../../dto/update-category.dto'
+import { CreateCategoryDto } from '../../products/dto/create-category.dto'
+import { UpdateCategoryDto } from '../../products/dto/update-category.dto'
 
 describe('CategoryService', () => {
   let categoryService: CategoryService
