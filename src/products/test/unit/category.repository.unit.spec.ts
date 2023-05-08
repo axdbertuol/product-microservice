@@ -1,9 +1,9 @@
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Model } from 'mongoose'
-import { Category, CategoryDocument } from '../entities/category.entity'
-import { CreateCategoryDto } from '../dto/create-category.dto'
-import { CategoryRepository } from './category.repository'
+import { Category, CategoryDocument } from '../../entities/category.entity'
+import { CreateCategoryDto } from '../../dto/create-category.dto'
+import { CategoryRepository } from '../../repository/category.repository'
 
 describe('CategoryRepository', () => {
   let repository: CategoryRepository
