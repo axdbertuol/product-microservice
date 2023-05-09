@@ -5,7 +5,9 @@ if [ ! -f ".env" ]; then
 fi
 
 pnpm install --force
-pnpm test
+pnpm test:unit
+pnpm test:integ
+
 if [ -e $DEBUG ]; then
   pnpm start:debug
 else
