@@ -43,7 +43,9 @@ export class CategoryController implements CRUD {
   }
 
   @Post()
-  create(@Body() category: CreateCategoryDto): Promise<Category> {
+  create(
+    @Body(new ValidationPipe({ transform: true })) category: CreateCategoryDto,
+  ): Promise<Category> {
     const result = this.categoryService.create(category)
     return result
   }
