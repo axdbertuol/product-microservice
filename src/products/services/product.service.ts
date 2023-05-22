@@ -1,37 +1,82 @@
 import { Injectable } from '@nestjs/common'
 import { Product } from '../entities/product.entity'
-import { CreateProductDto } from '../dto/create-product.dto'
+import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { ProductRepository } from '../repository/product.repository'
 import { UpdateProductDto } from '../dto/update-product.dto'
 import { ProductServiceInterface } from '../types/service'
-
+import { ResultAsync, errAsync } from 'neverthrow'
+import { CategoryService } from './category.service'
+import { FindProductDto } from '../dto/find-product.dto'
 @Injectable()
 export class ProductService implements ProductServiceInterface {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(
+    private readonly productRepository: ProductRepository,
+    private readonly categoryService: CategoryService,
+  ) {}
 
-  async find(id: string): Promise<Product | null> {
-    return this.productRepository.find(id)
+  find(id: string): ResultAsync<FindProductDto | null, Error> {
+    return this.productRepository
+      .find(id)
+      .map((product) => product as unknown as FindProductDto)
+      .mapErr((err) => err)
   }
 
-  async findAllByCategory(category: string): Promise<Product[]> {
-    return this.productRepository.findAllByCategory(category)
+  findAllByCategory(category?: string): ResultAsync<FindProductDto[], Error> {
+    if (!category || category.length === 0) {
+      return errAsync(new Error('Category name not provided'))
+    }
+    return this.productRepository
+      .findAllByCategory(category)
+      .map((product) => product)
+      .mapErr((err) => err)
   }
 
-  async findAll(category?: string): Promise<Product[]> {
+  findAll(category?: string): ResultAsync<FindProductDto[], Error> {
     if (category) return this.findAllByCategory(category)
     return this.productRepository.findAll()
   }
 
-  async create(product: CreateProductDto): Promise<Product> {
-    return this.productRepository.create(product)
+  create(
+    product: CreateProductDto,
+  ): ResultAsync<CreatedProductDto | null, Error> {
+    return this.categoryService
+      .findByName(product.category)
+      .andThen((categories) => {
+        const id = categories.at(0)?._id
+        if (id) {
+          return this.productRepository.create({
+            ...product,
+            category: id,
+          })
+        }
+        return errAsync(new Error('po'))
+      })
   }
-
-  async update(id: string, product: UpdateProductDto): Promise<Product | null> {
+  update(
+    id: string,
+    product: UpdateProductDto,
+  ): ResultAsync<UpdateProductDto | string | null, Error> {
     const productToBeUpdated = product as Product
-    return this.productRepository.update(id, productToBeUpdated)
+    return this.productRepository
+      .update(id, productToBeUpdated)
+      .map((product) => {
+        if (product) {
+          return product
+        }
+        return 'Product not found'
+      })
+      .mapErr((err) => err)
   }
 
-  async delete(id: string): Promise<void> {
-    await this.productRepository.delete(id)
+  delete(id: string): ResultAsync<string, Error> {
+    return this.productRepository
+      .delete(id)
+      .map((product) => {
+        if (product) {
+          return `Product ${product._id}:${product.name} deleted`
+        }
+        return `Product not found`
+      })
+      .mapErr((err) => err)
   }
 }

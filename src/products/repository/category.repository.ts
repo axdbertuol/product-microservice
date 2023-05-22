@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, ObjectId } from 'mongoose'
 import { CRUD } from '../types/base.d'
 import { Category, CategoryDocument } from '../entities/category.entity'
 import { CreateCategoryDto } from '../dto/create-category.dto'
+import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+import { FindCategoryDto } from '../dto/find-category.dto'
 
 @Injectable()
 export class CategoryRepository implements CRUD {
@@ -12,26 +14,55 @@ export class CategoryRepository implements CRUD {
     private readonly categoryModel: Model<CategoryDocument>,
   ) {}
 
-  async find(id: string): Promise<Category | null> {
-    return this.categoryModel.findById(id).exec()
+  find(id: string): ResultAsync<Category | null, Error> {
+    return ResultAsync.fromPromise(
+      this.categoryModel.findById(id).exec(),
+      () => new Error('Database error'),
+    )
+  }
+  findByName(categoryName: string): ResultAsync<FindCategoryDto[], Error> {
+    return ResultAsync.fromPromise(
+      this.categoryModel.find({ name: categoryName }).exec(),
+      () => new Error('Database error'),
+    ).map((doc) => doc.map((doc) => doc && doc.toObject()))
   }
 
-  async findAll(): Promise<Category[]> {
-    return this.categoryModel.find().exec()
+  findAll(): ResultAsync<Category[], Error> {
+    return ResultAsync.fromPromise(
+      this.categoryModel.find().exec(),
+      () => new Error('Database error'),
+    ).map((docs) => docs.map((doc) => doc.toObject()))
   }
 
-  async create(category: CreateCategoryDto): Promise<Category> {
-    const newCategory = await this.categoryModel.create(category)
-    return newCategory as Category
+  create(category: CreateCategoryDto): ResultAsync<Category, Error> {
+    return ResultAsync.fromPromise(
+      this.categoryModel.create(category),
+      () => new Error('Database error'),
+    ).map((doc) => doc.toObject())
   }
 
-  async update(id: string, category: Category): Promise<Category | null> {
-    return this.categoryModel
-      .findByIdAndUpdate(id, category, { new: true })
-      ?.exec()
+  update(id: string, category: Category): ResultAsync<Category | null, Error> {
+    return ResultAsync.fromPromise(
+      this.categoryModel.findByIdAndUpdate(id, category, { new: true })?.exec(),
+      () => new Error('Database error'),
+    )
   }
 
-  async delete(id: string): Promise<void> {
-    await this.categoryModel.findByIdAndDelete(id).exec()
+  delete(id: string): ResultAsync<Category | null, Error> {
+    return ResultAsync.fromPromise(
+      this.categoryModel.findByIdAndDelete(id).exec(),
+      () => new Error('Database error'),
+    )
+  }
+  exists(category?: string): ResultAsync<{ _id: ObjectId } | null, Error> {
+    return this.categoryModel.exists(
+      { name: category },
+      (err, doc): ResultAsync<{ _id: ObjectId } | null, Error> => {
+        if (err) {
+          return errAsync(err)
+        }
+        return okAsync(doc as unknown as { _id: ObjectId })
+      },
+    ) as unknown as ResultAsync<{ _id: ObjectId } | null, Error>
   }
 }

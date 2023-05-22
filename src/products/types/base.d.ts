@@ -1,7 +1,7 @@
 export interface CRUD {
-  find(id: string): Promise<T | null>
-  findAll(id: string): Promise<T[] | null>
-  create(obj: T): Promise<T | null>
-  update(id: string, obj: T): Promise<T | null>
-  delete(id: string): Promise<void>
+  find(id: string): ResultAsync<T, E>
+  findAll(id: string): ResultAsync<T[], E>
+  create(obj: T): ResultAsync<T, E>
+  update(id: string, obj: T): ResultAsync<T, E>
+  delete(id: string): ResultAsync<T, E>
 }

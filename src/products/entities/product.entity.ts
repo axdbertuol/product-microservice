@@ -26,3 +26,8 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product)
+
+// ProductSchema.pre<ProductDocument>('validate', function (this: Product, next) {
+//   if (typeof this.category === 'string') {
+//   }
+// })

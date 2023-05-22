@@ -7,44 +7,59 @@ import {
   Delete,
   Param,
   Query,
+  ValidationPipe,
+  UsePipes,
 } from '@nestjs/common'
 import { Product } from '../entities/product.entity'
 import { ProductService } from '../services/product.service'
-import { CreateProductDto } from '../dto/create-product.dto'
+import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { UpdateProductDto } from '../dto/update-product.dto'
 import { ProductControllerInterface } from '../types/controller.d'
+import { FindProductDto } from '../dto/find-product.dto'
+import { ObjectIdToStringPipe } from '../validation'
 
 @Controller('products')
 export class ProductController implements ProductControllerInterface {
   constructor(private readonly productService: ProductService) {}
 
   @Get(':id')
-  async find(@Param('id') id: string): Promise<Product | null> {
-    return this.productService.find(id)
+  find(@Param('id') id: string): Promise<FindProductDto | null | string> {
+    return this.productService.find(id).unwrapOr('Something went wrong')
   }
 
   @Get()
+  @UsePipes(new ObjectIdToStringPipe({ transform: true }))
   async findAll(
     @Query('categoryName') categoryName?: string,
-  ): Promise<Product[] | null> {
-    return this.productService.findAll(categoryName)
+  ): Promise<FindProductDto[] | null | string> {
+    const res = this.productService
+      .findAll(categoryName)
+      .unwrapOr('Something went wrong')
+    return res
   }
 
   @Post()
-  async create(@Body() product: CreateProductDto): Promise<Product> {
-    return this.productService.create(product)
+  @UsePipes(new ObjectIdToStringPipe())
+  async create(
+    @Body(new ValidationPipe({ transform: true, enableDebugMessages: true }))
+    product: CreateProductDto,
+  ): Promise<CreatedProductDto | string | null> {
+    const res = await this.productService.create(product)
+    return res.isOk() ? res.unwrapOr('Something went wrong') : res.error.message
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() product: UpdateProductDto,
-  ): Promise<Product | null> {
-    return this.productService.update(id, product)
+  ): Promise<UpdateProductDto | null | string> {
+    return this.productService
+      .update(id, product)
+      .unwrapOr('Something went wrong')
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    return this.productService.delete(id)
+  async delete(@Param('id') id: string): Promise<void | string> {
+    return this.productService.delete(id).unwrapOr('Something went wrong')
   }
 }

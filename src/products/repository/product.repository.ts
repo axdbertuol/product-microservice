@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { Product, ProductDocument } from '../entities/product.entity'
-import { CreateProductDto } from '../dto/create-product.dto'
+import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { ProductRepositoryInterface } from '../types/repository'
+import { ResultAsync } from 'neverthrow'
+import { FindProductDto } from '../dto/find-product.dto'
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
@@ -12,37 +14,52 @@ export class ProductRepository implements ProductRepositoryInterface {
     private readonly productModel: Model<ProductDocument>,
   ) {}
 
-  async find(id: string): Promise<Product | null> {
-    return this.productModel.findById(id).exec()
+  find(id: string): ResultAsync<Product | null, Error> {
+    return ResultAsync.fromPromise(
+      this.productModel.findById(id).exec(),
+      (err) => new Error('Database error ' + err),
+    ).map((doc) => (doc && doc.toObject()) || null)
   }
 
-  async findAllByCategory(category: string): Promise<Product[]> {
-    return this.productModel
-      .find()
-      .populate({
-        path: 'category',
-        match: { name: category },
-      })
-      .exec()
-      .then((res) => res.filter((prod) => prod.category))
+  findAllByCategory(category: string): ResultAsync<FindProductDto[], Error> {
+    return ResultAsync.fromPromise(
+      this.productModel
+        .find()
+        .populate({
+          path: 'category',
+          match: { name: category },
+        })
+        .exec()
+        .then((res) => res.filter((prod) => prod.category)),
+      (err) => new Error('Database error ' + err),
+    ).map((docs) => docs.map((doc) => doc.toObject()) as FindProductDto[])
   }
 
-  async findAll(): Promise<Product[]> {
-    return this.productModel.find().populate({ path: 'category' }).exec()
+  findAll(): ResultAsync<FindProductDto[], Error> {
+    return ResultAsync.fromPromise(
+      this.productModel.find().populate({ path: 'category' }).exec(),
+      (err) => new Error('Database error ' + err),
+    ).map((docs) => docs.map((doc) => doc.toObject()) as FindProductDto[])
   }
 
-  async create(product: CreateProductDto): Promise<Product> {
-    const newProduct = (await this.productModel.create(product)).save()
-    return newProduct
+  create(product: CreateProductDto): ResultAsync<CreatedProductDto, Error> {
+    return ResultAsync.fromPromise(
+      this.productModel.create(product),
+      (err) => new Error('Database error: ' + err),
+    ).map((doc) => doc.toObject())
   }
 
-  async update(id: string, product: Product): Promise<Product | null> {
-    return this.productModel
-      .findByIdAndUpdate(id, product, { new: true })
-      ?.exec()
+  update(id: string, product: Product): ResultAsync<Product | null, Error> {
+    return ResultAsync.fromPromise(
+      this.productModel.findByIdAndUpdate(id, product, { new: true })?.exec(),
+      (err) => new Error('Database error ' + err),
+    )
   }
 
-  async delete(id: string): Promise<void> {
-    await this.productModel.findByIdAndDelete(id).exec()
+  delete(id: string): ResultAsync<Product | null, Error> {
+    return ResultAsync.fromPromise(
+      this.productModel.findByIdAndDelete(id).exec(),
+      (err) => new Error('Database error ' + err),
+    )
   }
 }
