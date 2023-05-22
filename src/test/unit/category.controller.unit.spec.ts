@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { CategoryController } from '../../products/controllers/category.controller'
-import { CategoryService } from '../../products/services/category.service'
-import { Category } from '../../products/entities/category.entity'
-import { CreateCategoryDto } from '../../products/dto/create-category.dto'
-import { UpdateCategoryDto } from '../../products/dto/update-category.dto'
-import { CategoryRepository } from '../../products/repository/category.repository'
+import { CategoryController } from '../../controllers/category.controller'
+import { CategoryService } from '../../services/category.service'
+import { Category } from '../../entities/category.entity'
+import { CreateCategoryDto } from '../../dto/create-category.dto'
+import { UpdateCategoryDto } from '../../dto/update-category.dto'
+import { CategoryRepository } from '../../repository/category.repository'
 
-jest.mock('../../products/repository/category.repository')
+jest.mock('../../repository/category.repository')
 describe('CategoryController', () => {
   let controller: CategoryController
   let categoryService: CategoryService

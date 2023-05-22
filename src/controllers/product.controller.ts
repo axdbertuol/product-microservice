@@ -8,15 +8,12 @@ import {
   Param,
   Query,
   ValidationPipe,
-  UsePipes,
 } from '@nestjs/common'
-import { Product } from '../entities/product.entity'
 import { ProductService } from '../services/product.service'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { UpdateProductDto } from '../dto/update-product.dto'
 import { ProductControllerInterface } from '../types/controller.d'
 import { FindProductDto } from '../dto/find-product.dto'
-import { ObjectIdToStringPipe } from '../validation'
 
 @Controller('products')
 export class ProductController implements ProductControllerInterface {
@@ -28,7 +25,6 @@ export class ProductController implements ProductControllerInterface {
   }
 
   @Get()
-  @UsePipes(new ObjectIdToStringPipe({ transform: true }))
   async findAll(
     @Query('categoryName') categoryName?: string,
   ): Promise<FindProductDto[] | null | string> {
@@ -39,7 +35,6 @@ export class ProductController implements ProductControllerInterface {
   }
 
   @Post()
-  @UsePipes(new ObjectIdToStringPipe())
   async create(
     @Body(new ValidationPipe({ transform: true, enableDebugMessages: true }))
     product: CreateProductDto,

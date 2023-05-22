@@ -14,10 +14,10 @@ export class CreateProductDto {
 }
 
 export class CreatedProductDto {
-  readonly _id: string
-  readonly name: string
-  readonly description?: string
-  readonly price: number
+  _id: string
+  name: string
+  description?: string
+  price: number
   @Type(() => Category)
-  readonly category: Category
+  category: Category
 }

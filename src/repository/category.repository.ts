@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, ObjectId } from 'mongoose'
 import { CRUD } from '../types/base.d'
-import { Category, CategoryDocument } from '../entities/category.entity'
+import { Category } from '../entities/category.entity'
 import { CreateCategoryDto } from '../dto/create-category.dto'
 import { ResultAsync, errAsync, okAsync } from 'neverthrow'
 import { FindCategoryDto } from '../dto/find-category.dto'
@@ -11,7 +11,7 @@ import { FindCategoryDto } from '../dto/find-category.dto'
 export class CategoryRepository implements CRUD {
   constructor(
     @InjectModel(Category.name)
-    private readonly categoryModel: Model<CategoryDocument>,
+    private readonly categoryModel: Model<Category>,
   ) {}
 
   find(id: string): ResultAsync<Category | null, Error> {
