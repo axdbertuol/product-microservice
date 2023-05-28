@@ -1,14 +1,19 @@
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Model } from 'mongoose'
+import { Model, ObjectId } from 'mongoose'
+import { Product, ProductDocument } from '../../entities/product.entity'
 import {
-  Product,
-  ProductDocument,
-} from '../../products/entities/product.entity'
-import { CreateProductDto } from '../../products/dto/create-product.dto'
-import { ProductRepository } from '../../products/repository/product.repository'
-import { Category } from '../../products/entities/category.entity'
-import { UpdateProductDto } from '../../products/dto/update-product.dto'
+  CreateProductDto,
+  CreatedProductDto,
+} from '../../dto/create-product.dto'
+import { ProductRepository } from '../../repository/product.repository'
+import { Category } from '../../entities/category.entity'
+import {
+  UpdateProductDto,
+  UpdatedProductDto,
+} from '../../dto/update-product.dto'
+import { FindProductDto } from '../../dto/find-product.dto'
+import { throwError } from 'rxjs'
 
 describe('ProductRepository', () => {
   let repository: ProductRepository
@@ -20,13 +25,7 @@ describe('ProductRepository', () => {
         ProductRepository,
         {
           provide: getModelToken(Product.name),
-          useValue: {
-            findById: jest.fn(),
-            find: jest.fn(),
-            create: jest.fn(),
-            findByIdAndUpdate: jest.fn(),
-            findByIdAndDelete: jest.fn(),
-          },
+          useValue: Model,
         },
       ],
     }).compile()
@@ -41,120 +40,355 @@ describe('ProductRepository', () => {
   })
 
   describe('find', () => {
-    it('should call findById on productModel with the given id', async () => {
-      const id = 'id-123'
-      const expectedProduct = new Product()
-      // const findById = productModel.findById(id).exec as jest.Mock
-      productModel.findById = jest.fn().mockImplementation(() => ({
-        exec: () => Promise.resolve(expectedProduct),
-      }))
-      productModel.findById
-      const result = await repository.find(id)
+    it('should find a product by id and return a FindProductDto', (done) => {
+      const mockProduct = new Product()
+      mockProduct._id = 'mockId' as unknown as ObjectId
+      mockProduct.name = 'Mock Product'
 
-      expect(productModel.findById).toHaveBeenCalledWith(id)
-      expect(result).toEqual(expectedProduct)
+      jest.spyOn(productModel, 'findById').mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValueOnce(mockProduct),
+      } as any)
+
+      const expectedResult: FindProductDto = {
+        _id: 'mockId',
+        name: 'Mock Product',
+        // Other properties
+      }
+
+      repository.find('mockId').subscribe({
+        next: (result) => {
+          expect(result).toEqual(expectedResult)
+          done()
+        },
+        error: done.fail,
+      })
     })
 
-    it('should return null if the product is not found', async () => {
-      const id = 'id-123'
-      productModel.findById = jest
-        .fn()
-        .mockImplementation(() => ({ exec: () => null }))
+    it('should return null if no product is found', (done) => {
+      jest.spyOn(productModel, 'findById').mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValueOnce(null),
+      } as any)
 
-      const result = await repository.find(id)
+      repository.find('mockId').subscribe({
+        next: (result) => {
+          expect(result).toBeNull()
+          done()
+        },
+        error: done.fail,
+      })
+    })
 
-      expect(productModel.findById).toHaveBeenCalledWith(id)
-      expect(result).toBeNull()
+    it('should throw an error if there is a database error', (done) => {
+      const databaseError = new Error('Database error')
+
+      jest.spyOn(productModel, 'findById').mockReturnValueOnce({
+        exec: jest.fn().mockRejectedValueOnce(databaseError),
+      } as any)
+
+      repository.find('mockId').subscribe({
+        error: (error) => {
+          expect(error).toBeInstanceOf(Error)
+          expect(error.message).toBe('Database error: ' + databaseError)
+          done()
+        },
+        complete: done.fail,
+      })
     })
   })
 
   describe('findAllByCategory', () => {
-    it('should call find on productModel with the given category', async () => {
-      const category = 'electronics'
-      const p1 = new Product()
-      const p2 = new Product()
-      const p3 = new Product()
-      p1.category = new Category()
-      p2.category = new Category()
-      p3.category = new Category()
-      p1.category.name = category
-      p2.category.name = 'bla'
-      p3.category.name = category
-      const expectedProducts = [p1, p3]
+    it('should find all products by category and return an array of FindProductDto', (done) => {
+      const category = 'mockCategory'
+      const mockProducts: Product[] = [
+        {
+          _id: '1' as unknown as ObjectId,
+          name: 'Product 1',
+          category: 'mockCategory' as unknown as Category,
+          price: 10,
+          description: '',
+        },
+        {
+          _id: '2' as unknown as ObjectId,
+          name: 'Product 2',
+          category: 'mockCategory' as unknown as Category,
+          price: 20,
+          description: '',
+        },
+      ]
 
-      productModel.find = jest.fn().mockImplementation(() => ({
-        populate: () => ({
-          exec: () => Promise.resolve(expectedProducts),
-        }),
-      }))
+      jest.spyOn(productModel, 'find').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValueOnce(mockProducts),
+      } as any)
 
-      const result = await repository.findAllByCategory(category)
-      expect(productModel.find).toHaveBeenCalled()
-      expect(result).toEqual(expectedProducts)
+      const expectedResult: FindProductDto[] = [
+        {
+          _id: '1',
+          name: 'Product 1',
+          category: 'mockCategory' as unknown as Category,
+          price: 10,
+          description: '',
+        },
+        {
+          _id: '2',
+          name: 'Product 2',
+          category: 'mockCategory' as unknown as Category,
+          price: 20,
+          description: '',
+        },
+      ]
+
+      repository.findAllByCategory(category).subscribe({
+        next: (result) => {
+          expect(result).toEqual(expectedResult)
+          done()
+        },
+        error: done.fail,
+      })
+    })
+
+    it('should throw an error if there is a database error', (done) => {
+      const category = 'mockCategory'
+      const databaseError = new Error('Database error')
+
+      jest.spyOn(productModel, 'find').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValueOnce(databaseError),
+      } as any)
+
+      repository.findAllByCategory(category).subscribe({
+        error: (error) => {
+          expect(error).toBeInstanceOf(Error)
+          expect(error.message).toBe('Database error: ' + databaseError)
+          done()
+        },
+        complete: done.fail,
+      })
     })
   })
-
   describe('findAll', () => {
-    it('should call find on productModel with no arguments', async () => {
-      const expectedProducts = [new Product(), new Product()]
+    it('should find all products and return an array of FindProductDto', (done) => {
+      const mockProducts: Product[] = [
+        {
+          _id: '1' as unknown as ObjectId,
+          name: 'Product 1',
+          category: 'mockCategory' as unknown as Category,
+          price: 10,
+          description: '',
+        },
+        {
+          _id: '2' as unknown as ObjectId,
+          name: 'Product 2',
+          category: 'mockCategory' as unknown as Category,
+          price: 20,
+          description: '',
+        },
+      ]
 
-      productModel.find = jest.fn().mockImplementation(() => ({
-        populate: () => ({
-          exec: () => Promise.resolve(expectedProducts),
-        }),
-      }))
+      jest.spyOn(productModel, 'find').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValueOnce(mockProducts),
+      } as any)
 
-      const result = await repository.findAll()
+      const expectedResult: FindProductDto[] = [
+        {
+          _id: '1',
+          name: 'Product 1',
+          category: 'mockCategory' as unknown as Category,
+          price: 10,
+          description: '',
+        },
+        {
+          _id: '2',
+          name: 'Product 2',
+          category: 'mockCategory' as unknown as Category,
+          price: 20,
+          description: '',
+        },
+      ]
 
-      expect(productModel.find).toHaveBeenCalledWith()
-      expect(result).toEqual(expectedProducts)
+      repository.findAll().subscribe({
+        next: (result) => {
+          expect(result).toEqual(expectedResult)
+          done()
+        },
+        error: done.fail,
+      })
+    })
+
+    it('should throw an error if there is a database error', (done) => {
+      const databaseError = new Error('Database error')
+
+      jest.spyOn(productModel, 'find').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValueOnce(databaseError),
+      } as any)
+
+      repository.findAll().subscribe({
+        error: (error) => {
+          expect(error).toBeInstanceOf(Error)
+          expect(error.message).toBe('Database error: ' + databaseError)
+          done()
+        },
+        complete: done.fail,
+      })
     })
   })
 
   describe('create', () => {
-    it('should call create on productModel with the given product', async () => {
-      const product: CreateProductDto = {
-        name: 'Product 1',
-        price: 9.99,
-        category: new Category(),
+    it('should create a product and return a CreatedProductDto', (done) => {
+      const createProductDto: CreateProductDto = {
+        name: 'New Product',
+        category: 'Category 1',
+        price: 10,
       }
-      const expectedProduct = new Product()
-      expectedProduct.name = product.name
-      expectedProduct.price = product.price
-      expectedProduct.category = product.category
 
-      productModel.create = jest.fn().mockImplementation(() => ({
-        save: () => Promise.resolve(expectedProduct),
-      }))
+      const mockProduct = new Product() as ProductDocument
+      const wrapProduct = {
+        toObject: () => mockProduct,
+      } as ProductDocument
+      mockProduct._id = 'mockId' as unknown as ObjectId
+      mockProduct.name = 'New Product'
+      mockProduct.category = 'Category 1' as unknown as Category
+      mockProduct.price = 10
 
-      const result = await repository.create(product)
+      jest
+        .spyOn(productModel, 'create')
+        .mockImplementationOnce(() => Promise.resolve(wrapProduct))
 
-      expect(productModel.create).toHaveBeenCalledWith(product)
-      expect(result).toEqual(expectedProduct)
+      const expectedResult: CreatedProductDto = {
+        _id: 'mockId',
+        name: 'New Product',
+        category: 'Category 1' as unknown as Category,
+        price: 10,
+      }
+
+      repository.create(createProductDto).subscribe({
+        next: (result) => {
+          expect(result).toEqual(expectedResult)
+          done()
+        },
+        error: done.fail,
+      })
+    })
+
+    it('should throw error if there is a database error', (done) => {
+      const createProductDto: CreateProductDto = {
+        name: 'New Product',
+        category: 'Category 1',
+        price: 10,
+      }
+
+      const databaseError = new Error('Database error')
+
+      jest
+        .spyOn(productModel, 'create')
+        .mockImplementationOnce(() => Promise.reject(databaseError))
+
+      repository.create(createProductDto).subscribe({
+        error: (error) => {
+          expect(error).toBeInstanceOf(Error)
+          expect(error.message).toBe('Database error: ' + databaseError)
+          done()
+        },
+        complete: done.fail,
+      })
     })
   })
 
   describe('update', () => {
-    it('should call findByIdAndUpdate on productModel with the given id and product', async () => {
-      const id = 'id-123'
-      const product: UpdateProductDto = {
-        name: 'Product 1',
-        price: 9.99,
+    it('should update a product and return an UpdateProductDto', (done) => {
+      const id = 'mockId'
+      const updateProductDto: UpdateProductDto = {
+        name: 'Updated Product',
+        category: 'Category 1' as unknown as Category,
+        price: 20,
       }
-      const expectedProduct = new Product()
-      expectedProduct.name = product.name as string
-      expectedProduct.price = product.price as number
 
-      productModel.findByIdAndUpdate = jest.fn().mockImplementation(() => ({
-        exec: () => Promise.resolve(expectedProduct),
-      }))
+      const mockProduct = new Product()
+      const wrapProduct = {
+        toObject: () => mockProduct,
+      } as ProductDocument
+      mockProduct._id = id as unknown as ObjectId
+      mockProduct.name = 'Updated Product'
+      mockProduct.category = 'Category 1' as unknown as Category
+      mockProduct.price = 20
 
-      const result = await repository.update(id, product as Product)
+      jest.spyOn(productModel, 'findByIdAndUpdate').mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValueOnce(wrapProduct),
+      } as any)
 
-      expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(id, product, {
-        new: true,
+      const expectedResult: UpdatedProductDto = {
+        _id: id as unknown as ObjectId,
+        name: 'Updated Product',
+        category: 'Category 1' as unknown as Category,
+        price: 20,
+      }
+
+      repository.update(id, updateProductDto as Product).subscribe({
+        next: (result) => {
+          expect(result).toEqual(expectedResult)
+          done()
+        },
+        error: done.fail,
       })
-      expect(result).toEqual(expectedProduct)
+    })
+
+    it('should throw an error if there is a database error', (done) => {
+      const id = 'mockId'
+      const updateProductDto: UpdateProductDto = {
+        name: 'Updated Product',
+        category: 'Category 1' as unknown as Category,
+        price: 20,
+      }
+
+      const databaseError = new Error('Database error')
+
+      jest.spyOn(productModel, 'findByIdAndUpdate').mockReturnValueOnce({
+        exec: jest.fn().mockRejectedValueOnce(databaseError),
+      } as any)
+
+      repository.update(id, updateProductDto as Product).subscribe({
+        error: (error) => {
+          expect(error).toBeInstanceOf(Error)
+          expect(error.message).toBe('Database error: ' + databaseError)
+          done()
+        },
+        complete: done.fail,
+      })
+    })
+  })
+  describe('delete', () => {
+    it('should delete a product and return the deleted product DTO', (done) => {
+      const id = 'mockId'
+
+      const mockProduct = new Product()
+      const wrapProduct = {
+        toObject: () => mockProduct,
+      } as ProductDocument
+      mockProduct._id = id as unknown as ObjectId
+      mockProduct.name = 'Updated Product'
+      mockProduct.category = 'Category 1' as unknown as Category
+      mockProduct.price = 20
+
+      jest.spyOn(productModel, 'findByIdAndDelete').mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValueOnce(wrapProduct),
+      } as any)
+
+      const expectedResult: UpdatedProductDto = {
+        _id: id as unknown as ObjectId,
+        name: 'Updated Product',
+        category: 'Category 1' as unknown as Category,
+        price: 20,
+      }
+
+      repository.delete(id).subscribe({
+        next: (result) => {
+          expect(result).toEqual(expectedResult)
+          done()
+        },
+        error: done.fail,
+      })
     })
   })
 })

@@ -8,48 +8,45 @@ import {
   Param,
   ValidationPipe,
 } from '@nestjs/common'
-import { CRUD } from '../types/base.d'
 import { CategoryService } from '../services/category.service'
-import { Category } from '../entities/category.entity'
 import { CreateCategoryDto } from '../dto/create-category.dto'
 import { UpdateCategoryDto } from '../dto/update-category.dto'
+import { FindCategoryDto } from 'src/dto/find-category.dto'
+import { Observable } from 'rxjs'
+import { CRUD } from 'src/types/base'
 
 @Controller('categories')
-export class CategoryController {
+export class CategoryController implements CRUD {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get(':id')
-  find(@Param('id') id: string): Promise<Category | string | null> {
-    return this.categoryService.find(id).unwrapOr('Something went wrong')
+  find(@Param('id') id: string): Observable<FindCategoryDto | null> {
+    return this.categoryService.find(id)
   }
 
   @Put(':id')
   update(
     @Param('id') id: string,
     @Body() category: UpdateCategoryDto,
-  ): Promise<Category | string | null> {
-    return this.categoryService
-      .update(id, category)
-      .unwrapOr('Something went wrong')
+  ): Observable<UpdateCategoryDto | string | null> {
+    return this.categoryService.update(id, category)
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<boolean | string> {
-    return this.categoryService.delete(id).unwrapOr('Something went wrong')
+  delete(@Param('id') id: string): Observable<boolean | string> {
+    return this.categoryService.delete(id)
   }
 
   @Get()
-  findAll(): Promise<Category[] | string> {
-    return this.categoryService.findAll().unwrapOr('Something went wrong')
+  findAll(): Observable<FindCategoryDto[]> {
+    return this.categoryService.findAll()
   }
 
   @Post()
   create(
     @Body(new ValidationPipe({ transform: true })) category: CreateCategoryDto,
-  ): Promise<Category | string> {
-    const result = this.categoryService
-      .create(category)
-      .unwrapOr('Something went wrong')
+  ): Observable<CreateCategoryDto | string> {
+    const result = this.categoryService.create(category)
     return result
   }
 }

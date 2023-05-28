@@ -4,67 +4,62 @@ import { CategoryRepository } from '../repository/category.repository'
 import { CreateCategoryDto } from '../dto/create-category.dto'
 import { Category } from '../entities/category.entity'
 import { UpdateCategoryDto } from '../dto/update-category.dto'
-import { ResultAsync, errAsync } from 'neverthrow'
+import { Observable, throwError } from 'rxjs'
+import { catchError, map } from 'rxjs/operators'
 import { FindCategoryDto } from '../dto/find-category.dto'
 
 @Injectable()
 export class CategoryService implements CRUD {
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
-  exists(category?: string): ResultAsync<boolean, Error> {
-    return this.categoryRepository
-      .exists(category ?? '')
-      .map((category) => Boolean(category?._id))
-      .mapErr((err) => err)
+  find(id: string): Observable<FindCategoryDto | null> {
+    return this.categoryRepository.find(id).pipe(
+      map((category) => category),
+      catchError((err) => throwError(() => err)),
+    )
   }
 
-  find(id: string): ResultAsync<Category | null, Error> {
-    return this.categoryRepository
-      .find(id)
-      .map((category) => category)
-      .mapErr((err) => err)
-  }
-  findByName(categoryName: string): ResultAsync<FindCategoryDto[], Error> {
-    return this.categoryRepository
-      .findByName(categoryName)
-      .map((categories) => categories)
-      .mapErr((err) => err)
+  findByName(categoryName: string): Observable<FindCategoryDto[]> {
+    return this.categoryRepository.findByName(categoryName).pipe(
+      map((categories) => categories),
+      catchError((err) => throwError(() => err)),
+    )
   }
 
-  findAll(): ResultAsync<Category[], Error> {
-    return this.categoryRepository
-      .findAll()
-      .map((category) => category)
-      .mapErr((err) => err)
+  findAll(): Observable<FindCategoryDto[]> {
+    return this.categoryRepository.findAll().pipe(
+      map((category) => category),
+      catchError((err) => throwError(() => err)),
+    )
   }
 
-  create(category: CreateCategoryDto): ResultAsync<Category, Error> {
-    return this.categoryRepository
-      .create(category)
-      .map((category) => category)
-      .mapErr((err) => err)
+  create(category: CreateCategoryDto): Observable<CreateCategoryDto> {
+    return this.categoryRepository.create(category).pipe(
+      map((category) => category),
+      catchError((err) => throwError(() => err)),
+    )
   }
 
   update(
     id: string,
     category: UpdateCategoryDto,
-  ): ResultAsync<Category | null, Error> {
+  ): Observable<UpdateCategoryDto | null> {
     const categoryToBeUpdated = category as Category
-    return this.categoryRepository
-      .update(id, categoryToBeUpdated)
-      .map((category) => category)
-      .mapErr((err) => err)
+    return this.categoryRepository.update(id, categoryToBeUpdated).pipe(
+      map((category) => category),
+      catchError((err) => throwError(() => err)),
+    )
   }
 
-  delete(id: string): ResultAsync<string, Error> {
-    return this.categoryRepository
-      .delete(id)
-      .map((category) => {
+  delete(id: string): Observable<string> {
+    return this.categoryRepository.delete(id).pipe(
+      map((category) => {
         if (category) {
           return `category ${category._id}:${category.name} deleted`
         }
         return `category not found`
-      })
-      .mapErr((err) => err)
+      }),
+      catchError((err) => throwError(() => err)),
+    )
   }
 }

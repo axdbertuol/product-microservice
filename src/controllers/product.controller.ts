@@ -11,50 +11,45 @@ import {
 } from '@nestjs/common'
 import { ProductService } from '../services/product.service'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
-import { UpdateProductDto } from '../dto/update-product.dto'
+import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
 import { ProductControllerInterface } from '../types/controller.d'
 import { FindProductDto } from '../dto/find-product.dto'
+import { Observable } from 'rxjs'
 
 @Controller('products')
 export class ProductController implements ProductControllerInterface {
   constructor(private readonly productService: ProductService) {}
 
   @Get(':id')
-  find(@Param('id') id: string): Promise<FindProductDto | null | string> {
-    return this.productService.find(id).unwrapOr('Something went wrong')
+  find(@Param('id') id: string): Observable<FindProductDto | null | string> {
+    return this.productService.find(id)
   }
 
   @Get()
-  async findAll(
+  findAll(
     @Query('categoryName') categoryName?: string,
-  ): Promise<FindProductDto[] | null | string> {
-    const res = this.productService
-      .findAll(categoryName)
-      .unwrapOr('Something went wrong')
-    return res
+  ): Observable<FindProductDto[] | null | string> {
+    return this.productService.findAll(categoryName)
   }
 
   @Post()
-  async create(
+  create(
     @Body(new ValidationPipe({ transform: true, enableDebugMessages: true }))
     product: CreateProductDto,
-  ): Promise<CreatedProductDto | string | null> {
-    const res = await this.productService.create(product)
-    return res.isOk() ? res.unwrapOr('Something went wrong') : res.error.message
+  ): Observable<CreatedProductDto | string | null> {
+    return this.productService.create(product)
   }
 
   @Put(':id')
-  async update(
+  update(
     @Param('id') id: string,
     @Body() product: UpdateProductDto,
-  ): Promise<UpdateProductDto | null | string> {
-    return this.productService
-      .update(id, product)
-      .unwrapOr('Something went wrong')
+  ): Observable<UpdatedProductDto | null | string> {
+    return this.productService.update(id, product)
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void | string> {
-    return this.productService.delete(id).unwrapOr('Something went wrong')
+  delete(@Param('id') id: string): Observable<void | string> {
+    return this.productService.delete(id)
   }
 }

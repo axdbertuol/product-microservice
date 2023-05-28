@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common'
 import { Product } from '../entities/product.entity'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { ProductRepository } from '../repository/product.repository'
-import { UpdateProductDto } from '../dto/update-product.dto'
+import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
 import { ProductServiceInterface } from '../types/service'
-import { ResultAsync, errAsync } from 'neverthrow'
+import { Observable, throwError } from 'rxjs'
+import { catchError, map, mergeMap } from 'rxjs/operators'
 import { CategoryService } from './category.service'
 import { FindProductDto } from '../dto/find-product.dto'
+
 @Injectable()
 export class ProductService implements ProductServiceInterface {
   constructor(
@@ -14,34 +16,34 @@ export class ProductService implements ProductServiceInterface {
     private readonly categoryService: CategoryService,
   ) {}
 
-  find(id: string): ResultAsync<FindProductDto | null, Error> {
-    return this.productRepository
-      .find(id)
-      .map((product) => product as unknown as FindProductDto)
-      .mapErr((err) => err)
+  find(id: string): Observable<FindProductDto | null> {
+    return this.productRepository.find(id).pipe(
+      map((product) => product as unknown as FindProductDto),
+      catchError((err) => throwError(() => new Error(err))),
+    )
   }
 
-  findAllByCategory(category?: string): ResultAsync<FindProductDto[], Error> {
+  findAllByCategory(category?: string): Observable<FindProductDto[]> {
     if (!category || category.length === 0) {
-      return errAsync(new Error('Category name not provided'))
+      return throwError(new Error('Category name not provided'))
     }
     return this.productRepository
       .findAllByCategory(category)
-      .map((product) => product)
-      .mapErr((err) => err)
+      .pipe(catchError((err) => throwError(err)))
   }
 
-  findAll(category?: string): ResultAsync<FindProductDto[], Error> {
-    if (category) return this.findAllByCategory(category)
-    return this.productRepository.findAll()
+  findAll(category?: string): Observable<FindProductDto[]> {
+    if (category) {
+      return this.findAllByCategory(category)
+    }
+    return this.productRepository
+      .findAll()
+      .pipe(catchError((err) => throwError(err)))
   }
 
-  create(
-    product: CreateProductDto,
-  ): ResultAsync<CreatedProductDto | null, Error> {
-    return this.categoryService
-      .findByName(product.category)
-      .andThen((categories) => {
+  create(product: CreateProductDto): Observable<CreatedProductDto | null> {
+    return this.categoryService.findByName(product.category).pipe(
+      mergeMap((categories) => {
         const id = categories.at(0)?._id
         if (id) {
           return this.productRepository.create({
@@ -49,34 +51,37 @@ export class ProductService implements ProductServiceInterface {
             category: id,
           })
         }
-        return errAsync(new Error('po'))
-      })
+        return throwError(new Error('Category not found'))
+      }),
+      catchError((err) => throwError(err)),
+    )
   }
+
   update(
     id: string,
     product: UpdateProductDto,
-  ): ResultAsync<UpdateProductDto | string | null, Error> {
+  ): Observable<UpdatedProductDto | string | null> {
     const productToBeUpdated = product as Product
-    return this.productRepository
-      .update(id, productToBeUpdated)
-      .map((product) => {
-        if (product) {
-          return product
+    return this.productRepository.update(id, productToBeUpdated).pipe(
+      map((updatedProduct) => {
+        if (updatedProduct) {
+          return updatedProduct
         }
         return 'Product not found'
-      })
-      .mapErr((err) => err)
+      }),
+      catchError((err) => throwError(err)),
+    )
   }
 
-  delete(id: string): ResultAsync<string, Error> {
-    return this.productRepository
-      .delete(id)
-      .map((product) => {
-        if (product) {
-          return `Product ${product._id}:${product.name} deleted`
+  delete(id: string): Observable<string> {
+    return this.productRepository.delete(id).pipe(
+      map((deletedProduct) => {
+        if (deletedProduct) {
+          return `Product ${deletedProduct._id}:${deletedProduct.name} deleted`
         }
-        return `Product not found`
-      })
-      .mapErr((err) => err)
+        return 'Product not found'
+      }),
+      catchError((err) => throwError(err)),
+    )
   }
 }

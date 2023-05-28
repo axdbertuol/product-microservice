@@ -1,11 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model, ObjectId } from 'mongoose'
+import { Model } from 'mongoose'
 import { CRUD } from '../types/base.d'
 import { Category } from '../entities/category.entity'
 import { CreateCategoryDto } from '../dto/create-category.dto'
-import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+import { Observable, throwError, from } from 'rxjs'
+import { catchError, map } from 'rxjs/operators'
 import { FindCategoryDto } from '../dto/find-category.dto'
+import { UpdateCategoryDto } from 'src/dto/update-category.dto'
 
 @Injectable()
 export class CategoryRepository implements CRUD {
@@ -14,55 +16,52 @@ export class CategoryRepository implements CRUD {
     private readonly categoryModel: Model<Category>,
   ) {}
 
-  find(id: string): ResultAsync<Category | null, Error> {
-    return ResultAsync.fromPromise(
-      this.categoryModel.findById(id).exec(),
-      () => new Error('Database error'),
-    )
-  }
-  findByName(categoryName: string): ResultAsync<FindCategoryDto[], Error> {
-    return ResultAsync.fromPromise(
-      this.categoryModel.find({ name: categoryName }).exec(),
-      () => new Error('Database error'),
-    ).map((doc) => doc.map((doc) => doc && doc.toObject()))
-  }
-
-  findAll(): ResultAsync<Category[], Error> {
-    return ResultAsync.fromPromise(
-      this.categoryModel.find().exec(),
-      () => new Error('Database error'),
-    ).map((docs) => docs.map((doc) => doc.toObject()))
-  }
-
-  create(category: CreateCategoryDto): ResultAsync<Category, Error> {
-    return ResultAsync.fromPromise(
-      this.categoryModel.create(category),
-      () => new Error('Database error'),
-    ).map((doc) => doc.toObject())
-  }
-
-  update(id: string, category: Category): ResultAsync<Category | null, Error> {
-    return ResultAsync.fromPromise(
-      this.categoryModel.findByIdAndUpdate(id, category, { new: true })?.exec(),
-      () => new Error('Database error'),
+  find(id: string): Observable<FindCategoryDto | null> {
+    return from(this.categoryModel.findById(id).exec()).pipe(
+      map((doc) => (doc && (doc.toObject() as FindCategoryDto)) || null),
+      catchError((err) => throwError(() => new Error(err))),
     )
   }
 
-  delete(id: string): ResultAsync<Category | null, Error> {
-    return ResultAsync.fromPromise(
-      this.categoryModel.findByIdAndDelete(id).exec(),
-      () => new Error('Database error'),
+  findByName(categoryName: string): Observable<FindCategoryDto[]> {
+    return from(this.categoryModel.find({ name: categoryName }).exec()).pipe(
+      map((docs) =>
+        docs.map((doc) => (doc && (doc.toObject() as FindCategoryDto)) || null),
+      ),
+      catchError((err) => throwError(() => new Error(err))),
     )
   }
-  exists(category?: string): ResultAsync<{ _id: ObjectId } | null, Error> {
-    return this.categoryModel.exists(
-      { name: category },
-      (err, doc): ResultAsync<{ _id: ObjectId } | null, Error> => {
-        if (err) {
-          return errAsync(err)
-        }
-        return okAsync(doc as unknown as { _id: ObjectId })
-      },
-    ) as unknown as ResultAsync<{ _id: ObjectId } | null, Error>
+
+  findAll(): Observable<FindCategoryDto[]> {
+    return from(this.categoryModel.find().exec()).pipe(
+      map((docs) => docs.map((doc) => doc.toObject() as FindCategoryDto)),
+      catchError((err) => throwError(() => new Error(err))),
+    )
+  }
+
+  create(category: CreateCategoryDto): Observable<CreateCategoryDto> {
+    return from(this.categoryModel.create(category)).pipe(
+      map((doc) => doc.toObject() as CreateCategoryDto),
+      catchError((err) => throwError(() => new Error(err))),
+    )
+  }
+
+  update(id: string, category: Category): Observable<UpdateCategoryDto | null> {
+    return from(
+      this.categoryModel.findByIdAndUpdate(id, category, { new: true }).exec(),
+    ).pipe(
+      map((doc) => (doc && (doc.toObject() as UpdateCategoryDto)) || null),
+      catchError((err) => throwError(() => new Error(err))),
+    )
+  }
+
+  delete(id: string): Observable<{ _id: string; name: string } | null> {
+    return from(this.categoryModel.findByIdAndDelete(id).exec()).pipe(
+      map(
+        (doc) =>
+          (doc && (doc.toObject() as { _id: string; name: string })) || null,
+      ),
+      catchError((err) => throwError(() => new Error(err))),
+    )
   }
 }
