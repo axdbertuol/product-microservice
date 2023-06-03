@@ -13,7 +13,6 @@ import {
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
 import { FindProductDto } from '../../dto/find-product.dto'
-import { throwError } from 'rxjs'
 
 describe('ProductRepository', () => {
   let repository: ProductRepository
