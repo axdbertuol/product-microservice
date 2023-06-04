@@ -43,16 +43,16 @@ export class CategoryController implements CRUD {
     return this.categoryService.delete(id)
   }
 
-  @Get()
-  findAll(): Observable<FindCategoryDto[]> {
-    return this.categoryService.findAll()
-  }
-
   @Post()
   create(
     @Body(new ValidationPipe({ transform: true })) category: CreateCategoryDto,
   ): Observable<CreatedCategoryDto | string> {
     const result = this.categoryService.create(category)
     return result
+  }
+
+  @Get()
+  findAll(): Observable<FindCategoryDto[]> {
+    return this.categoryService.findAll()
   }
 }

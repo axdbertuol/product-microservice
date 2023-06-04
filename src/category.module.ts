@@ -14,9 +14,9 @@ import { Category, CategorySchema } from './entities/category.entity'
         name: Category.name,
         useFactory: () => {
           const schema = CategorySchema
-          schema.pre('save', function () {
-            console.log('Hello from pre save Category')
-          })
+          // schema.pre('save', function () {
+          //   console.log('Hello from pre save Category')
+          // })
           return schema
         },
       },

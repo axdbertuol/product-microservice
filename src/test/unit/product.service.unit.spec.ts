@@ -256,7 +256,7 @@ describe('ProductService', () => {
       productService.create(createProductDto).subscribe({
         // () => {},
         error: (err: Error) => {
-          expect(err.message).toBe('Category not found')
+          expect(err.message).toBe('Should create category first')
           done()
         },
       })

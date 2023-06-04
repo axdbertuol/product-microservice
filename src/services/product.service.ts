@@ -44,6 +44,9 @@ export class ProductService implements ProductServiceInterface {
   create(product: CreateProductDto): Observable<CreatedProductDto | null> {
     return this.categoryService.findByName(product.category).pipe(
       mergeMap((categories) => {
+        if (categories && categories?.length == 0) {
+          return throwError(() => new Error('Should create category first'))
+        }
         const id = categories.at(0)?._id
         if (id) {
           return this.productRepository.create({
@@ -51,7 +54,7 @@ export class ProductService implements ProductServiceInterface {
             category: id,
           })
         }
-        return throwError(new Error('Category not found'))
+        return throwError(() => new Error('Category not found'))
       }),
       catchError((err) => throwError(() => err)),
     )

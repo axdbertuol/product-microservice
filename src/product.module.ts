@@ -15,9 +15,9 @@ import { CategoryModule } from './category.module'
         name: Product.name,
         useFactory: () => {
           const schema = ProductSchema
-          schema.pre('save', function () {
-            console.log('Hello from pre save')
-          })
+          // schema.pre('save', function () {
+          //   console.log('Hello from pre save')
+          // })
           return schema
         },
       },
