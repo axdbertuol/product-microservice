@@ -18,7 +18,14 @@ export class ProductRepository implements ProductRepositoryInterface {
   ) {}
 
   find(id: string): Observable<FindProductDto | null> {
-    return from(this.productModel.findById(id).exec()).pipe(
+    return from(
+      this.productModel
+        .findById(id)
+        .populate({
+          path: 'category',
+        })
+        .exec(),
+    ).pipe(
       map((doc) => (doc && this.mapProductToDto(doc)) || null),
       catchError((err) =>
         throwError(() => new Error('Database error: ' + err)),
@@ -70,7 +77,12 @@ export class ProductRepository implements ProductRepositoryInterface {
 
   update(id: string, product: Product): Observable<UpdatedProductDto | null> {
     return from(
-      this.productModel.findByIdAndUpdate(id, product, { new: true }).exec(),
+      this.productModel
+        .findByIdAndUpdate(id, product, { new: true })
+        .populate({
+          path: 'category',
+        })
+        .exec(),
     ).pipe(
       map((doc) => (doc && (doc.toObject() as UpdatedProductDto)) || null),
       catchError((err) =>

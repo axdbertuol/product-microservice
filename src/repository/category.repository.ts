@@ -2,18 +2,21 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { CRUD } from '../types/base.d'
-import { Category } from '../entities/category.entity'
-import { CreateCategoryDto } from '../dto/create-category.dto'
+import { Category, CategoryDocument } from '../entities/category.entity'
+import {
+  CreateCategoryDto,
+  CreatedCategoryDto,
+} from '../dto/create-category.dto'
 import { Observable, throwError, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindCategoryDto } from '../dto/find-category.dto'
-import { UpdateCategoryDto } from 'src/dto/update-category.dto'
+import { UpdatedCategoryDto } from 'src/dto/update-category.dto'
 
 @Injectable()
 export class CategoryRepository implements CRUD {
   constructor(
     @InjectModel(Category.name)
-    private readonly categoryModel: Model<Category>,
+    private readonly categoryModel: Model<CategoryDocument>,
   ) {}
 
   find(id: string): Observable<FindCategoryDto | null> {
@@ -39,18 +42,21 @@ export class CategoryRepository implements CRUD {
     )
   }
 
-  create(category: CreateCategoryDto): Observable<CreateCategoryDto> {
+  create(category: CreateCategoryDto): Observable<CreatedCategoryDto> {
     return from(this.categoryModel.create(category)).pipe(
-      map((doc) => doc.toObject() as CreateCategoryDto),
+      map((doc) => doc.toObject() as CreatedCategoryDto),
       catchError((err) => throwError(() => new Error(err))),
     )
   }
 
-  update(id: string, category: Category): Observable<UpdateCategoryDto | null> {
+  update(
+    id: string,
+    category: Category,
+  ): Observable<UpdatedCategoryDto | null> {
     return from(
       this.categoryModel.findByIdAndUpdate(id, category, { new: true }).exec(),
     ).pipe(
-      map((doc) => (doc && (doc.toObject() as UpdateCategoryDto)) || null),
+      map((doc) => (doc && (doc.toObject() as UpdatedCategoryDto)) || null),
       catchError((err) => throwError(() => new Error(err))),
     )
   }

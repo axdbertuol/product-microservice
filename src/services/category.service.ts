@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { CRUD } from '../types/base.d'
 import { CategoryRepository } from '../repository/category.repository'
-import { CreateCategoryDto } from '../dto/create-category.dto'
+import {
+  CreateCategoryDto,
+  CreatedCategoryDto,
+} from '../dto/create-category.dto'
 import { Category } from '../entities/category.entity'
-import { UpdateCategoryDto } from '../dto/update-category.dto'
+import {
+  UpdateCategoryDto,
+  UpdatedCategoryDto,
+} from '../dto/update-category.dto'
 import { Observable, throwError } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindCategoryDto } from '../dto/find-category.dto'
@@ -33,7 +39,7 @@ export class CategoryService implements CRUD {
     )
   }
 
-  create(category: CreateCategoryDto): Observable<CreateCategoryDto> {
+  create(category: CreateCategoryDto): Observable<CreatedCategoryDto> {
     return this.categoryRepository.create(category).pipe(
       map((category) => category),
       catchError((err) => throwError(() => err)),
@@ -43,7 +49,7 @@ export class CategoryService implements CRUD {
   update(
     id: string,
     category: UpdateCategoryDto,
-  ): Observable<UpdateCategoryDto | null> {
+  ): Observable<UpdatedCategoryDto | null> {
     const categoryToBeUpdated = category as Category
     return this.categoryRepository.update(id, categoryToBeUpdated).pipe(
       map((category) => category),

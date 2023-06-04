@@ -9,8 +9,14 @@ import {
   ValidationPipe,
 } from '@nestjs/common'
 import { CategoryService } from '../services/category.service'
-import { CreateCategoryDto } from '../dto/create-category.dto'
-import { UpdateCategoryDto } from '../dto/update-category.dto'
+import {
+  CreateCategoryDto,
+  CreatedCategoryDto,
+} from '../dto/create-category.dto'
+import {
+  UpdateCategoryDto,
+  UpdatedCategoryDto,
+} from '../dto/update-category.dto'
 import { FindCategoryDto } from 'src/dto/find-category.dto'
 import { Observable } from 'rxjs'
 import { CRUD } from 'src/types/base'
@@ -28,7 +34,7 @@ export class CategoryController implements CRUD {
   update(
     @Param('id') id: string,
     @Body() category: UpdateCategoryDto,
-  ): Observable<UpdateCategoryDto | string | null> {
+  ): Observable<UpdatedCategoryDto | string | null> {
     return this.categoryService.update(id, category)
   }
 
@@ -45,7 +51,7 @@ export class CategoryController implements CRUD {
   @Post()
   create(
     @Body(new ValidationPipe({ transform: true })) category: CreateCategoryDto,
-  ): Observable<CreateCategoryDto | string> {
+  ): Observable<CreatedCategoryDto | string> {
     const result = this.categoryService.create(category)
     return result
   }

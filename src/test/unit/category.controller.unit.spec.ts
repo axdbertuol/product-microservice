@@ -1,12 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { CategoryController } from '../../controllers/category.controller'
 import { CategoryService } from '../../services/category.service'
-import { Category } from '../../entities/category.entity'
-import { CreateCategoryDto } from '../../dto/create-category.dto'
-import { UpdateCategoryDto } from '../../dto/update-category.dto'
+import {
+  CreateCategoryDto,
+  CreatedCategoryDto,
+} from '../../dto/create-category.dto'
+import {
+  UpdateCategoryDto,
+  UpdatedCategoryDto,
+} from '../../dto/update-category.dto'
+import { FindCategoryDto } from '../../dto/find-category.dto'
+import { of, throwError } from 'rxjs'
 import { CategoryRepository } from '../../repository/category.repository'
 
 jest.mock('../../repository/category.repository')
+jest.mock('../../services/category.service')
 describe('CategoryController', () => {
   let controller: CategoryController
   let categoryService: CategoryService
@@ -21,73 +29,204 @@ describe('CategoryController', () => {
     categoryService = module.get<CategoryService>(CategoryService)
   })
 
-  describe('findAll', () => {
-    it('should return an array of categories', async () => {
-      const result = [
-        { id: '1', name: 'Category 1' },
-        { id: '2', name: 'Category 2' },
-      ] as unknown as Category[]
-      jest.spyOn(categoryService, 'findAll').mockResolvedValue(result)
-
-      expect(await controller.findAll()).toBe(result)
-    })
-  })
-
   describe('find', () => {
-    it('should return a category with the specified id', async () => {
-      const id = '1'
-      const result = { id: '1', name: 'Category 1' } as unknown as Category
-      jest.spyOn(categoryService, 'find').mockResolvedValue(result)
+    it('should return the found category', (done) => {
+      const id = '123'
+      const categoryDto: FindCategoryDto = {
+        name: 'Category A',
+        _id: id,
+      }
+      jest.spyOn(categoryService, 'find').mockReturnValue(of(categoryDto))
 
-      expect(await controller.find(id)).toBe(result)
+      controller.find(id).subscribe((result) => {
+        expect(result).toEqual(categoryDto)
+        done()
+      })
     })
 
-    it('should return null if the category is not found', async () => {
-      const id = '1'
-      jest.spyOn(categoryService, 'find').mockResolvedValue(null)
+    it('should return null when category not found', (done) => {
+      const id = '123'
+      jest.spyOn(categoryService, 'find').mockReturnValue(of(null))
 
-      expect(await controller.find(id)).toBe(null)
+      controller.find(id).subscribe((result) => {
+        expect(result).toBeNull()
+        done()
+      })
     })
-  })
 
-  describe('create', () => {
-    it('should create a new category', async () => {
-      const category: CreateCategoryDto = { name: 'New Category' }
-      const result = { id: '1', name: 'New Category' } as unknown as Category
-      jest.spyOn(categoryService, 'create').mockResolvedValue(result)
+    it('should throw an error when an error occurs', (done) => {
+      const id = '123'
+      const error = new Error('Some error')
+      jest
+        .spyOn(categoryService, 'find')
+        .mockReturnValue(throwError(() => error))
 
-      expect(await controller.create(category)).toBe(result)
+      controller.find(id).subscribe({
+        // () => {},
+        error: (err) => {
+          expect(err).toBe(error)
+          done()
+        },
+      })
     })
   })
 
   describe('update', () => {
-    it('should update an existing category', async () => {
-      const id = '1'
-      const category: UpdateCategoryDto = { name: 'Updated Category' }
-      const result = {
-        id: '1',
+    it('should update the category', (done) => {
+      const id = '123'
+      const updateCategoryDto: UpdateCategoryDto = {
         name: 'Updated Category',
-      } as unknown as Category
-      jest.spyOn(categoryService, 'update').mockResolvedValue(result)
+      }
+      const updatedCategoryDto: UpdatedCategoryDto = {
+        name: 'Updated Category',
+        _id: id,
+      }
+      jest
+        .spyOn(categoryService, 'update')
+        .mockReturnValue(of(updatedCategoryDto))
 
-      expect(await controller.update(id, category)).toBe(result)
+      controller.update(id, updateCategoryDto).subscribe((result) => {
+        expect(result).toEqual(updatedCategoryDto)
+        done()
+      })
     })
 
-    it('should return null if the category is not found', async () => {
-      const id = '1'
-      const category: UpdateCategoryDto = { name: 'Updated Category' }
-      jest.spyOn(categoryService, 'update').mockResolvedValue(null)
+    it('should return null when category not found', (done) => {
+      const id = '123'
+      const updateCategoryDto: UpdateCategoryDto = {
+        name: 'Updated Category',
+      }
+      jest.spyOn(categoryService, 'update').mockReturnValue(of(null))
 
-      expect(await controller.update(id, category)).toBe(null)
+      controller.update(id, updateCategoryDto).subscribe((result) => {
+        expect(result).toBeNull()
+        done()
+      })
+    })
+
+    it('should throw an error when an error occurs', (done) => {
+      const id = '123'
+      const updateCategoryDto: UpdateCategoryDto = {
+        name: 'Updated Category',
+      }
+      const error = new Error('Some error')
+      jest
+        .spyOn(categoryService, 'update')
+        .mockReturnValue(throwError(() => error))
+
+      controller.update(id, updateCategoryDto).subscribe({
+        // () => {},
+        error: (err) => {
+          expect(err).toBe(error)
+          done()
+        },
+      })
     })
   })
 
   describe('delete', () => {
-    it('should delete an existing category', async () => {
-      const id = '1'
-      jest.spyOn(categoryService, 'delete').mockResolvedValue(undefined)
+    it('should delete the category', (done) => {
+      const id = '123'
+      jest.spyOn(categoryService, 'delete').mockReturnValue(of('deleted'))
 
-      expect(await controller.delete(id)).toBe(undefined)
+      controller.delete(id).subscribe((result) => {
+        expect(result).toBe('deleted')
+        done()
+      })
+    })
+
+    it('should return false when category not found', (done) => {
+      const id = '123'
+      jest.spyOn(categoryService, 'delete').mockReturnValue(of('not deleted'))
+
+      controller.delete(id).subscribe((result) => {
+        expect(result).toBe('not deleted')
+        done()
+      })
+    })
+
+    it('should throw an error when an error occurs', (done) => {
+      const id = '123'
+      const error = new Error('Some error')
+      jest
+        .spyOn(categoryService, 'delete')
+        .mockReturnValue(throwError(() => error))
+
+      controller.delete(id).subscribe({
+        // () => {},
+        error: (err) => {
+          expect(err).toBe(error)
+          done()
+        },
+      })
+    })
+  })
+
+  describe('findAll', () => {
+    it('should return an array of categories', (done) => {
+      const categoryDto: FindCategoryDto[] = [
+        { name: 'Category A', _id: '123' },
+        { name: 'Category B', _id: '456' },
+      ]
+      jest.spyOn(categoryService, 'findAll').mockReturnValue(of(categoryDto))
+
+      controller.findAll().subscribe((result) => {
+        expect(result).toEqual(categoryDto)
+        done()
+      })
+    })
+
+    it('should throw an error when an error occurs', (done) => {
+      const error = new Error('Some error')
+      jest
+        .spyOn(categoryService, 'findAll')
+        .mockReturnValue(throwError(() => error))
+
+      controller.findAll().subscribe({
+        // () => {},
+        error: (err) => {
+          expect(err).toBe(error)
+          done()
+        },
+      })
+    })
+  })
+
+  describe('create', () => {
+    it('should create a new category', (done) => {
+      const createCategoryDto: CreateCategoryDto = {
+        name: 'New Category',
+      }
+      const createdCategoryDto: CreatedCategoryDto = {
+        name: 'New Category',
+        _id: '123',
+      }
+      jest
+        .spyOn(categoryService, 'create')
+        .mockReturnValue(of(createdCategoryDto))
+
+      controller.create(createCategoryDto).subscribe((result) => {
+        expect(result).toEqual(createdCategoryDto)
+        done()
+      })
+    })
+
+    it('should throw an error when an error occurs', (done) => {
+      const createCategoryDto: CreateCategoryDto = {
+        name: 'New Category',
+      }
+      const error = new Error('Some error')
+      jest
+        .spyOn(categoryService, 'create')
+        .mockReturnValue(throwError(() => error))
+
+      controller.create(createCategoryDto).subscribe({
+        // () => {},
+        error: (err) => {
+          expect(err).toBe(error)
+          done()
+        },
+      })
     })
   })
 })

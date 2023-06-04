@@ -25,11 +25,11 @@ export class ProductService implements ProductServiceInterface {
 
   findAllByCategory(category?: string): Observable<FindProductDto[]> {
     if (!category || category.length === 0) {
-      return throwError(new Error('Category name not provided'))
+      return throwError(() => new Error('Category name not provided'))
     }
     return this.productRepository
       .findAllByCategory(category)
-      .pipe(catchError((err) => throwError(err)))
+      .pipe(catchError((err) => throwError(() => err)))
   }
 
   findAll(category?: string): Observable<FindProductDto[]> {
@@ -38,7 +38,7 @@ export class ProductService implements ProductServiceInterface {
     }
     return this.productRepository
       .findAll()
-      .pipe(catchError((err) => throwError(err)))
+      .pipe(catchError((err) => throwError(() => err)))
   }
 
   create(product: CreateProductDto): Observable<CreatedProductDto | null> {
@@ -53,7 +53,7 @@ export class ProductService implements ProductServiceInterface {
         }
         return throwError(new Error('Category not found'))
       }),
-      catchError((err) => throwError(err)),
+      catchError((err) => throwError(() => err)),
     )
   }
 
@@ -69,7 +69,7 @@ export class ProductService implements ProductServiceInterface {
         }
         return 'Product not found'
       }),
-      catchError((err) => throwError(err)),
+      catchError((err) => throwError(() => err)),
     )
   }
 
@@ -81,7 +81,7 @@ export class ProductService implements ProductServiceInterface {
         }
         return 'Product not found'
       }),
-      catchError((err) => throwError(err)),
+      catchError((err) => throwError(() => err)),
     )
   }
 }

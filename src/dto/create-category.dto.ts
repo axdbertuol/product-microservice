@@ -4,3 +4,5 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   name: string
 }
+
+export type CreatedCategoryDto = CreateCategoryDto | { _id: string }

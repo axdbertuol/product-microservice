@@ -45,6 +45,7 @@ describe('ProductRepository', () => {
       mockProduct.name = 'Mock Product'
 
       jest.spyOn(productModel, 'findById').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValueOnce(mockProduct),
       } as any)
 
@@ -65,6 +66,7 @@ describe('ProductRepository', () => {
 
     it('should return null if no product is found', (done) => {
       jest.spyOn(productModel, 'findById').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValueOnce(null),
       } as any)
 
@@ -81,6 +83,7 @@ describe('ProductRepository', () => {
       const databaseError = new Error('Database error')
 
       jest.spyOn(productModel, 'findById').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         exec: jest.fn().mockRejectedValueOnce(databaseError),
       } as any)
 
@@ -314,6 +317,7 @@ describe('ProductRepository', () => {
       mockProduct.price = 20
 
       jest.spyOn(productModel, 'findByIdAndUpdate').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValueOnce(wrapProduct),
       } as any)
 
@@ -344,6 +348,7 @@ describe('ProductRepository', () => {
       const databaseError = new Error('Database error')
 
       jest.spyOn(productModel, 'findByIdAndUpdate').mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         exec: jest.fn().mockRejectedValueOnce(databaseError),
       } as any)
 
