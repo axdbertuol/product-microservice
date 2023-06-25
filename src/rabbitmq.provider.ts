@@ -16,7 +16,7 @@ export class RabbitMQProvider implements OnModuleInit {
 
   private async connect() {
     try {
-      const amqpUrl = 'amqp://192.168.64.2:5672'
+      const amqpUrl = 'amqp://rabbitmq:5672'
       this.connection = await connect(amqpUrl)
       this.channel = await this.connection.createChannel()
       console.log('Connected to RabbitMQ')
