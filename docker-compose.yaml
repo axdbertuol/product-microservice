@@ -18,7 +18,8 @@ services:
     depends_on:
       - db
     networks:
-      - network
+      - product-microservice-network
+      - rabbitmq-broker_rabbitmq-network
 
   db:
     image: mongo
@@ -31,7 +32,8 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=root
       - MONGO_INITDB_DATABASE=product-microservice-db-test
     networks:
-      - network
+      - product-microservice-network
+      - rabbitmq-broker_rabbitmq-network
 
   mongo-express:
     image: mongo-express
@@ -47,8 +49,11 @@ services:
     depends_on:
       - db
     networks:
-      - network
+      - product-microservice-network
+      - rabbitmq-broker_rabbitmq-network
 
-networks: 
-  network:
+networks:
+  product-microservice-network:
     driver: bridge
+  rabbitmq-broker_rabbitmq-network:
+    external: true

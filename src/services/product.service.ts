@@ -8,12 +8,14 @@ import { Observable, throwError } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 import { CategoryService } from './category.service'
 import { FindProductDto } from '../dto/find-product.dto'
+import { RabbitMQProvider } from '../rabbitmq.provider'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly categoryService: CategoryService,
+    private readonly rabbitMQProvider: RabbitMQProvider,
   ) {}
 
   find(id: string): Observable<FindProductDto | null> {
@@ -57,6 +59,19 @@ export class ProductService implements ProductServiceInterface {
         return throwError(() => new Error('Category not found'))
       }),
       catchError((err) => throwError(() => err)),
+      map((result) => {
+        const channel = this.rabbitMQProvider.getChannel()
+        const exchangeName = 'my_exchange'
+        const routingKey = 'product_microservice_key'
+        console.log('oei')
+        channel
+          .assertExchange(exchangeName, 'direct', { durable: true })
+          .then(() => {
+            console.log('publishing')
+            channel.publish(exchangeName, routingKey, Buffer.from('oi'))
+          })
+        return result
+      }),
     )
   }
 

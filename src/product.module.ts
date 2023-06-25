@@ -7,6 +7,8 @@ import { Product, ProductSchema } from './entities/product.entity'
 import { ProductService } from './services/product.service'
 import { ProductRepository } from './repository/product.repository'
 import { CategoryModule } from './category.module'
+import { RabbitMQProvider } from './rabbitmq.provider'
+import { RabbitMQModule } from './rabbitmq.module'
 
 @Module({
   imports: [
@@ -23,8 +25,9 @@ import { CategoryModule } from './category.module'
       },
     ]),
     CategoryModule,
+    RabbitMQModule,
   ],
   controllers: [ProductController],
-  providers: [ProductService, ProductRepository],
+  providers: [ProductService, ProductRepository, RabbitMQModule],
 })
 export class ProductsModule {}
