@@ -1,21 +1,28 @@
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq'
 import { Module } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { MongooseModule } from '@nestjs/mongoose'
-import { RabbitMQProvider } from './rabbitmq.provider'
+import { RabbitService } from './services/rabbitmq.service'
 
 @Module({
-  //   imports: [
-  //     MongooseModule.forRootAsync({
-  //       useFactory: (configService: ConfigService) => ({
-  //         uri:
-  //           configService.get<string>('NODE_ENV') === 'test'
-  //             ? configService.get<string>('DATABASE_TEST_URL')
-  //             : configService.get<string>('DATABASE_URL'),
-  //       }),
-  //       inject: [ConfigService],
-  //     }),
-  //   ],
-  providers: [RabbitMQProvider],
-  exports: [RabbitMQProvider],
+  imports: [
+    RabbitMQModule.forRoot(RabbitMQModule, {
+      exchanges: [
+        {
+          // from broker to product microservice and vice-versa
+          name: 'product_inner_exchange',
+          type: 'direct',
+        },
+      ],
+      uri: 'amqp://rabbitmq:5672',
+      // enableControllerDiscovery: true,
+      channels: {
+        'channel-product': {
+          prefetchCount: 15,
+        },
+      },
+    }),
+    RabbitModule,
+  ],
+  providers: [RabbitService],
+  exports: [RabbitService],
 })
-export class RabbitMQModule {}
+export class RabbitModule {}

@@ -19,7 +19,7 @@ services:
       - db
     networks:
       - product-microservice-network
-      - rabbitmq-broker_rabbitmq-network
+      - kommshop-broker_rabbitmq-network
 
   db:
     image: mongo
@@ -53,5 +53,5 @@ services:
 networks:
   product-microservice-network:
     driver: bridge
-  rabbitmq-broker_rabbitmq-network:
+  kommshop-broker_rabbitmq-network:
     external: true

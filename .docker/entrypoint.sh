@@ -4,7 +4,7 @@ if [ ! -f ".env" ]; then
   cp .env.example .env
 fi
 
-pnpm install --force
+# pnpm install --force
 # pnpm test
 # pnpm test:e2e
 
