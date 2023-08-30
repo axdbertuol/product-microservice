@@ -1,5 +1,5 @@
 import { Category } from '../entities/category.entity'
-import { Expose, Transform } from 'class-transformer'
+import { Expose, Transform, Type } from 'class-transformer'
 import { IsString } from 'class-validator'
 export class FindProductDto {
   @Expose({ name: 'id' }) // Expose decorator to set the alias
@@ -9,5 +9,6 @@ export class FindProductDto {
   name?: string
   description?: string
   price?: number
+  @Type(() => Category)
   category?: Category
 }
