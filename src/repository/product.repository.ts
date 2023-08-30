@@ -48,7 +48,14 @@ export class ProductRepository implements ProductRepositoryInterface {
       //     .map((prod) => this.mapProductToDto(prod)),
       // ),
     ).pipe(
-      map((docs) => docs.map((doc) => this.mapProductToDto(doc))),
+      map((docs) =>
+        docs
+          .filter((doc) => Boolean(doc.category))
+          .map((doc) => {
+            const result = this.mapProductToDto(doc)
+            return result
+          }),
+      ),
       catchError((err) =>
         throwError(() => new Error('Database error: ' + err)),
       ),

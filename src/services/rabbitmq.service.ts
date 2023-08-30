@@ -29,7 +29,7 @@ export class RabbitService implements OnModuleInit {
     publishOpts?: Options.Publish
   }) {
     const channel = this.getChannel()
-    const exName = 'product_inner_exchange'
+    const exName = exchangeName ?? 'product_direct_exchange'
     const exType = exchangeType ?? 'direct'
     const routKey = routingKey ?? ''
 

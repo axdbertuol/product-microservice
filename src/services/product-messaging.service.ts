@@ -15,7 +15,7 @@ export class ProductMessagingService {
   ) {}
   @RabbitSubscribe({
     routingKey: 'product.fetch',
-    exchange: 'product_inner_exchange',
+    exchange: 'product_direct_exchange',
     queueOptions: {
       durable: false,
     },
