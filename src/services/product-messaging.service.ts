@@ -30,7 +30,6 @@ export class ProductMessagingService {
           ...amqpMsg,
           properties: {
             ...amqpMsg.properties,
-            timestamp: Date.now(),
           },
           fields: {
             ...amqpMsg.fields,
