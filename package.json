@@ -33,6 +33,7 @@
     "amqplib": "^0.10.3",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
+    "kommshop-types": "github:axdbertuol/-types-kommshop",
     "moment-timezone": "^0.5.43",
     "mongoose": "^6.11.5",
     "reflect-metadata": "^0.1.13",

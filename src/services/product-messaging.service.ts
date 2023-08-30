@@ -4,7 +4,7 @@ import { RabbitService } from './rabbitmq.service'
 import { ProductService } from './product.service'
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq'
 import { ConsumeMessage } from 'amqplib'
-import { MessageContent } from 'src/types/base'
+import { Message } from 'kommshop-types'
 
 @Injectable()
 export class ProductMessagingService {
@@ -16,12 +16,14 @@ export class ProductMessagingService {
   @RabbitSubscribe({
     routingKey: 'product.fetch',
     exchange: 'product_inner_exchange',
-    createQueueIfNotExists: true,
     queueOptions: {
       durable: false,
     },
   })
-  async interceptProductFetch(msg: MessageContent, amqpMsg: ConsumeMessage) {
+  async interceptProductFetch(
+    msg: Message.ProductContent,
+    amqpMsg: ConsumeMessage,
+  ) {
     this.productService.findAll(msg?.category ?? undefined).subscribe({
       next: async (result) => {
         const newMessage = {
@@ -29,18 +31,22 @@ export class ProductMessagingService {
           properties: {
             ...amqpMsg.properties,
             timestamp: Date.now(),
-            // replyTo: undefined,
           },
           fields: {
             ...amqpMsg.fields,
           },
-          content: Buffer.from(JSON.stringify(result)),
+          content: this.rabbitService.serializeContent(result),
         } as ConsumeMessage
-        console.log('intercepted2', newMessage, amqpMsg)
-        await this.rabbitService.handleMessage({
+        await this.rabbitService.publishMessage({
           message: newMessage,
           routingKey: 'product.fetch.response',
         })
+      },
+      error: (err) => {
+        console.log('Something went wrong while publishing', err)
+      },
+      complete: () => {
+        console.log('Message sent')
       },
     })
   }

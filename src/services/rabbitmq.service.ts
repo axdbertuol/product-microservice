@@ -1,7 +1,6 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq'
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { Channel, ConsumeMessage, Options } from 'amqplib'
-import { formatInTimeZone } from 'date-fns-tz'
 
 @Injectable()
 export class RabbitService implements OnModuleInit {
@@ -14,7 +13,7 @@ export class RabbitService implements OnModuleInit {
     )
   }
 
-  async handleMessage({
+  async publishMessage({
     message,
     exchangeName,
     exchangeType,
@@ -29,12 +28,7 @@ export class RabbitService implements OnModuleInit {
     exchangeOpts?: Options.AssertExchange
     publishOpts?: Options.Publish
   }) {
-    const channel = this.amqpConnection.channel
-    const currentDateTime = formatInTimeZone(
-      new Date(),
-      'America/Sao_Paulo',
-      'yyyy-MM-dd HH:mm:ss zzz',
-    )
+    const channel = this.getChannel()
     const exName = 'product_inner_exchange'
     const exType = exchangeType ?? 'direct'
     const routKey = routingKey ?? ''
@@ -42,7 +36,7 @@ export class RabbitService implements OnModuleInit {
     await channel.assertExchange(exName, exType, {
       ...exchangeOpts,
     })
-    console.log('publishing>' + exName, exType, routKey)
+    console.log('publishing>' + exName, exType, routKey, message)
     channel.publish(exName, routKey, message.content, {
       contentType: 'application/json',
       timestamp: Date.now(),
@@ -50,6 +44,18 @@ export class RabbitService implements OnModuleInit {
       expiration: 5000,
       ...publishOpts,
     })
+  }
+
+  async reply() {
+    // return this.getChannel().publish()
+  }
+
+  serializeContent(content: any) {
+    try {
+      return Buffer.from(JSON.stringify(content))
+    } catch (err) {
+      console.error(err, content)
+    }
   }
 
   getChannel(): Channel {
