@@ -1,0 +1,19 @@
+POST http://localhost:3333/products HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Men\"s Leather Jacket 2",
+    "description":"A stylish leather jacket for men.",
+    "category":  "Clothing",
+    "price": 150
+}
+
+###
+
+GET http://localhost:3333/products?cat=Cl HTTP/1.1
+content-type: application/json
+
+###
+
+GET http://localhost:3333/categories? HTTP/1.1
+content-type: application/json

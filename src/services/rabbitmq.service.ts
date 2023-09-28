@@ -7,10 +7,10 @@ export class RabbitService implements OnModuleInit {
   constructor(private readonly amqpConnection: AmqpConnection) {}
 
   async onModuleInit() {
-    await this.amqpConnection.channel.assertExchange(
-      'product_inner_exchange',
-      'direct',
-    )
+    // await this.amqpConnection.channel.assertExchange(
+    //   'product_inner_exchange',
+    //   'direct',
+    // )
   }
 
   async publishMessage({

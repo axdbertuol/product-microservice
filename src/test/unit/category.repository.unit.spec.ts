@@ -117,7 +117,9 @@ describe('CategoryRepository', () => {
 
       repository.findByName(categoryName).subscribe((result) => {
         expect(result).toEqual(categoryDto)
-        expect(findSpy).toHaveBeenCalledWith({ name: categoryName })
+        expect(findSpy).toHaveBeenCalledWith({
+          name: { $regex: categoryName, $options: 'i' },
+        })
         done()
       })
     })
@@ -131,7 +133,9 @@ describe('CategoryRepository', () => {
 
       repository.findByName(categoryName).subscribe((result) => {
         expect(result).toEqual([])
-        expect(findSpy).toHaveBeenCalledWith({ name: categoryName })
+        expect(findSpy).toHaveBeenCalledWith({
+          name: { $regex: categoryName, $options: 'i' },
+        })
         done()
       })
     })
@@ -149,7 +153,9 @@ describe('CategoryRepository', () => {
         error: (err) => {
           expect(error).toBeInstanceOf(Error)
           expect(err.message).toContain(error.message)
-          expect(findSpy).toHaveBeenCalledWith({ name: categoryName })
+          expect(findSpy).toHaveBeenCalledWith({
+            name: { $regex: categoryName, $options: 'i' },
+          })
           done()
         },
       })

@@ -39,7 +39,7 @@ export class ProductRepository implements ProductRepositoryInterface {
         .find()
         .populate({
           path: 'category',
-          match: { name: category },
+          match: { name: { $regex: category, $options: 'i' } },
         })
         .exec(),
       // .then((res) =>

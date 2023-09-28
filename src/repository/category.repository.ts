@@ -27,7 +27,11 @@ export class CategoryRepository implements CRUD {
   }
 
   findByName(categoryName: string): Observable<FindCategoryDto[]> {
-    return from(this.categoryModel.find({ name: categoryName }).exec()).pipe(
+    return from(
+      this.categoryModel
+        .find({ name: { $regex: categoryName, $options: 'i' } })
+        .exec(),
+    ).pipe(
       map((docs) =>
         docs.map((doc) => (doc && (doc.toObject() as FindCategoryDto)) || null),
       ),

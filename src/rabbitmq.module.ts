@@ -17,6 +17,16 @@ import { RabbitService } from './services/rabbitmq.service'
       channels: {
         'channel-product': {
           prefetchCount: 15,
+          default: true,
+        },
+      },
+      connectionInitOptions: {
+        // wait: false,
+        timeout: 5000,
+      },
+      connectionManagerOptions: {
+        connectionOptions: {
+          timeout: 10000,
         },
       },
     }),

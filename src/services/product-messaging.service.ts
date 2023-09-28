@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { CategoryService } from './category.service'
 import { RabbitService } from './rabbitmq.service'
 import { ProductService } from './product.service'
-import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq'
+import { RabbitRPC, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq'
 import { ConsumeMessage } from 'amqplib'
 import { Message } from 'kommshop-types'
 
@@ -13,11 +13,12 @@ export class ProductMessagingService {
     private readonly categoryService: CategoryService,
     private readonly rabbitService: RabbitService,
   ) {}
-  @RabbitSubscribe({
+  @RabbitRPC({
     routingKey: 'product.fetch',
     exchange: 'product_direct_exchange',
     queueOptions: {
       durable: false,
+      autoDelete: true,
     },
   })
   async interceptProductFetch(

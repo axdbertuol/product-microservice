@@ -25,7 +25,7 @@ export class CategoryService implements CRUD {
     )
   }
 
-  findByName(categoryName: string): Observable<FindCategoryDto[]> {
+  findByName(categoryName: string): Observable<FindCategoryDto[] | null> {
     return this.categoryRepository.findByName(categoryName).pipe(
       map((categories) => categories),
       catchError((err) => throwError(() => err)),

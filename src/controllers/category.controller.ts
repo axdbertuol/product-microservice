@@ -7,6 +7,7 @@ import {
   Delete,
   Param,
   ValidationPipe,
+  Query,
 } from '@nestjs/common'
 import { CategoryService } from '../services/category.service'
 import {
@@ -28,6 +29,13 @@ export class CategoryController implements CRUD {
   @Get(':id')
   find(@Param('id') id: string): Observable<FindCategoryDto | null> {
     return this.categoryService.find(id)
+  }
+
+  @Get(':name')
+  findByName(
+    @Query('name') name: string,
+  ): Observable<FindCategoryDto[] | null> {
+    return this.categoryService.findByName(name)
   }
 
   @Put(':id')

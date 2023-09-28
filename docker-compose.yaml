@@ -7,7 +7,7 @@ services:
       target: development
     entrypoint: ./.docker/entrypoint.sh
     ports:
-      - 3000:3000
+      - 3333:3333
       - 9229:9229
     tty: true
     volumes:

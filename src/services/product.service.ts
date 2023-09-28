@@ -47,7 +47,7 @@ export class ProductService implements ProductServiceInterface {
         if (categories && categories?.length == 0) {
           return throwError(() => new Error('Should create category first'))
         }
-        const id = categories.at(0)?._id
+        const id = categories?.at(0)?._id
         if (id) {
           const result = this.productRepository.create({
             ...product,
