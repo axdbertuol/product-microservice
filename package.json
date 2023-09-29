@@ -1,6 +1,6 @@
 {
   "name": "product-microservice",
-  "version": "0.7.0",
+  "version": "0.2.0",
   "description": "",
   "author": "",
   "private": true,
@@ -14,7 +14,7 @@
     "start:prod": "cross-env NODE_ENV=production node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
-    "test:unit": "jest --testPathPattern **/test/unit",
+    "test:unit": "jest --testPathPattern **/test/unit --openHandlesTimeout",
     "test:watch": "jest --testPathPattern **/test/unit --watch",
     "test:cov": "jest --testPathPattern **/test/unit --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",

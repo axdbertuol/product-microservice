@@ -8,7 +8,7 @@ import { Observable, throwError, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindProductDto } from '../dto/find-product.dto'
 import { UpdatedProductDto } from 'src/dto/update-product.dto'
-import { Category, CategoryDocument } from 'src/entities/category.entity'
+import { Category } from 'src/entities/category.entity'
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
