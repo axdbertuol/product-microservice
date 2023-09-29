@@ -32,12 +32,29 @@ export class ProductService implements ProductServiceInterface {
       .pipe(catchError((err) => throwError(() => err)))
   }
 
-  findAll(category?: string): Observable<FindProductDto[]> {
+  findAll(search?: string, category?: string): Observable<FindProductDto[]> {
     if (category) {
+      if (search) {
+        return this.findAllByCategoryAndName(search, category)
+      }
       return this.findAllByCategory(category)
+    }
+    if (search) {
+      return this.productRepository
+        .findAllByName(search)
+        .pipe(catchError((err) => throwError(() => err)))
     }
     return this.productRepository
       .findAll()
+      .pipe(catchError((err) => throwError(() => err)))
+  }
+
+  findAllByCategoryAndName(
+    search: string,
+    category: string,
+  ): Observable<FindProductDto[]> {
+    return this.productRepository
+      .findAllByCategoryAndName(search, category)
       .pipe(catchError((err) => throwError(() => err)))
   }
 

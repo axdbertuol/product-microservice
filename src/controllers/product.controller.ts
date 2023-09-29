@@ -28,8 +28,9 @@ export class ProductController implements ProductControllerInterface {
   @Get()
   findAll(
     @Query('cat') categoryName?: string,
+    @Query('search') search?: string,
   ): Observable<FindProductDto[] | null | string> {
-    return this.productService.findAll(categoryName)
+    return this.productService.findAll(search, categoryName)
   }
 
   @Post()

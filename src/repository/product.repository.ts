@@ -8,7 +8,7 @@ import { Observable, throwError, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindProductDto } from '../dto/find-product.dto'
 import { UpdatedProductDto } from 'src/dto/update-product.dto'
-import { Category } from 'src/entities/category.entity'
+import { Category, CategoryDocument } from 'src/entities/category.entity'
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
@@ -56,6 +56,50 @@ export class ProductRepository implements ProductRepositoryInterface {
             return result
           }),
       ),
+      catchError((err) =>
+        throwError(() => new Error('Database error: ' + err)),
+      ),
+    )
+  }
+
+  findAllByCategoryAndName(
+    search: string,
+    category: string,
+  ): Observable<FindProductDto[]> {
+    return from(
+      this.productModel
+        .find({
+          name: { $regex: search, $options: 'i' },
+        })
+        .populate({
+          path: 'category',
+          match: { name: { $regex: category, $options: 'i' } },
+        })
+        .exec(),
+    ).pipe(
+      map((docs) =>
+        docs
+          .filter((doc) => Boolean(doc.category))
+          .map((doc) => this.mapProductToDto(doc)),
+      ),
+      catchError((err) =>
+        throwError(() => new Error('Database error: ' + err)),
+      ),
+    )
+  }
+
+  findAllByName(search: string): Observable<FindProductDto[]> {
+    return from(
+      this.productModel
+        .find({
+          name: { $regex: search, $options: 'i' },
+        })
+        .populate({
+          path: 'category',
+        })
+        .exec(),
+    ).pipe(
+      map((docs) => docs.map((doc) => this.mapProductToDto(doc))),
       catchError((err) =>
         throwError(() => new Error('Database error: ' + err)),
       ),
