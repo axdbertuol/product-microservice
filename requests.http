@@ -10,7 +10,16 @@ content-type: application/json
 
 ###
 
-GET http://localhost:3333/products?cat=r&search=a HTTP/1.1
+POST http://localhost:3333/categories HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Kitchen"
+}
+
+###
+
+GET http://localhost:3333/products?cat=&search= HTTP/1.1
 content-type: application/json
 
 ###

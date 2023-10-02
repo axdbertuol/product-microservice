@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   ValidationPipe,
+  UseFilters,
 } from '@nestjs/common'
 import { ProductService } from '../services/product.service'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
@@ -15,8 +16,10 @@ import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
 import { ProductControllerInterface } from '../types/controller.d'
 import { FindProductDto } from '../dto/find-product.dto'
 import { Observable } from 'rxjs'
+import { HttpExceptionFilter } from '../filters/http-exception.filter'
 
 @Controller('products')
+@UseFilters(HttpExceptionFilter)
 export class ProductController implements ProductControllerInterface {
   constructor(private readonly productService: ProductService) {}
 
