@@ -31,7 +31,7 @@ export class CategoryController implements CRUD {
     return this.categoryService.find(id)
   }
 
-  @Get(':name')
+  @Get()
   findByName(
     @Query('name') name: string,
   ): Observable<FindCategoryDto[] | null> {
