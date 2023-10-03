@@ -73,7 +73,7 @@ describe('ProductController', () => {
         .mockReturnValue(of(expectedResult))
       const result = controller.findAll(categoryName)
       result.subscribe((value) => {
-        expect(value).toBe(expectedResult)
+        expect(value).toMatchObject(expectedResult)
       })
 
       // Verifying that the method was called
@@ -99,10 +99,10 @@ describe('ProductController', () => {
       }
       const createSpy = jest
         .spyOn(productService, 'create')
-        .mockReturnValue(of(expectedResult))
+        .mockReturnValue(of([expectedResult]))
       const result = controller.create(createProductDto)
       result.subscribe((value) => {
-        expect(value).toBe(expectedResult)
+        expect(value).toMatchObject([expectedResult])
       })
 
       // Verifying that the method was called

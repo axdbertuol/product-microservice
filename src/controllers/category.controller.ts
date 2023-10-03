@@ -32,10 +32,8 @@ export class CategoryController implements CRUD {
   }
 
   @Get()
-  findByName(
-    @Query('name') name: string,
-  ): Observable<FindCategoryDto[] | null> {
-    return this.categoryService.findByName(name)
+  findAll(@Query('name') name?: string): Observable<FindCategoryDto[] | null> {
+    return this.categoryService.findAll(name)
   }
 
   @Put(':id')
@@ -54,13 +52,8 @@ export class CategoryController implements CRUD {
   @Post()
   create(
     @Body(new ValidationPipe({ transform: true })) category: CreateCategoryDto,
-  ): Observable<CreatedCategoryDto | string> {
+  ): Observable<CreatedCategoryDto[] | null> {
     const result = this.categoryService.create(category)
     return result
-  }
-
-  @Get()
-  findAll(): Observable<FindCategoryDto[]> {
-    return this.categoryService.findAll()
   }
 }

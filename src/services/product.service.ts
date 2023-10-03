@@ -78,10 +78,10 @@ export class ProductService implements ProductServiceInterface {
     })
   }
 
-  create(product: CreateProductDto): Observable<CreatedProductDto | null> {
+  create(product: CreateProductDto): Observable<CreatedProductDto[] | null> {
     return this.categoryService.findByName(product.category).pipe(
       mergeMap((categories) => {
-        if (categories && categories?.length == 0) {
+        if (!categories || categories?.length == 0) {
           return throwError(() => new Error('Should create category first'))
         }
         const id = categories?.at(0)?._id
@@ -103,7 +103,7 @@ export class ProductService implements ProductServiceInterface {
     id: string,
     product: UpdateProductDto,
     { newFavourite }: { newFavourite?: ObjectId } = {},
-  ): Observable<UpdatedProductDto | string | null> {
+  ): Observable<UpdatedProductDto | null> {
     return this.productRepository.update(id, product, { newFavourite }).pipe(
       map((updatedProduct) => {
         if (updatedProduct) {

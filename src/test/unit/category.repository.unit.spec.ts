@@ -225,12 +225,13 @@ describe('CategoryRepository', () => {
       const wrapCateg = {
         toObject: () => createdCategoryDto,
       } as CategoryDocument
-      const createSpy = jest.spyOn(categoryModel, 'create')
-      createSpy.mockImplementationOnce(() => Promise.resolve(wrapCateg))
+      const createSpy = jest
+        .spyOn(categoryModel, 'create')
+        .mockResolvedValueOnce([wrapCateg])
 
       repository.create(createCategoryDto).subscribe((result) => {
-        expect(result).toEqual(createdCategoryDto)
-        expect(createSpy).toHaveBeenCalledWith(createCategoryDto)
+        expect(result).toEqual([createdCategoryDto])
+        expect(createSpy).toHaveBeenCalledWith([createCategoryDto])
         done()
       })
     })
@@ -249,7 +250,7 @@ describe('CategoryRepository', () => {
         error: (err) => {
           expect(error).toBeInstanceOf(Error)
           expect(err.message).toContain(error.message)
-          expect(createSpy).toHaveBeenCalledWith(createCategoryDto)
+          expect(createSpy).toHaveBeenCalledWith([createCategoryDto])
 
           done()
         },

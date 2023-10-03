@@ -46,9 +46,12 @@ export class CategoryRepository implements CRUD {
     )
   }
 
-  create(category: CreateCategoryDto): Observable<CreatedCategoryDto> {
-    return from(this.categoryModel.create(category)).pipe(
-      map((doc) => doc.toObject() as CreatedCategoryDto),
+  create(category: CreateCategoryDto): Observable<CreatedCategoryDto[]> {
+    return from(this.categoryModel.create([category])).pipe(
+      map(
+        (doc) =>
+          (doc && doc.map((d) => d.toObject() as CreatedCategoryDto)) || null,
+      ),
       catchError((err) => throwError(() => new Error(err))),
     )
   }

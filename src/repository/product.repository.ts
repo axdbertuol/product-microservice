@@ -117,9 +117,13 @@ export class ProductRepository implements ProductRepositoryInterface {
     )
   }
 
-  create(product: CreateProductDto): Observable<CreatedProductDto | null> {
-    return from(this.productModel.create(product)).pipe(
-      map((doc) => (doc && (doc.toObject() as CreatedProductDto)) || null),
+  create(product: CreateProductDto): Observable<CreatedProductDto[] | null> {
+    return from(this.productModel.create([product])).pipe(
+      map((doc) => {
+        return (
+          doc?.map((d) => (d.toObject() as CreatedProductDto) || null) ?? null
+        )
+      }),
       catchError((err) =>
         throwError(() => new Error('Database error: ' + err)),
       ),
@@ -129,7 +133,7 @@ export class ProductRepository implements ProductRepositoryInterface {
   update(
     id: string,
     product: UpdateProductDto,
-    { newFavourite }: { newFavourite?: ObjectId },
+    { newFavourite }: { newFavourite?: ObjectId } = {},
   ): Observable<UpdatedProductDto | null> {
     const productToBeUpdated = product as Product
 

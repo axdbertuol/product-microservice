@@ -25,7 +25,7 @@ export class ProductController implements ProductControllerInterface {
   constructor(private readonly productService: ProductService) {}
 
   @Get(':id')
-  find(@Param('id') id: string): Observable<FindProductDto | null | string> {
+  find(@Param('id') id: string): Observable<FindProductDto | null> {
     return this.productService.find(id)
   }
 
@@ -39,9 +39,9 @@ export class ProductController implements ProductControllerInterface {
 
   @Post()
   create(
-    @Body(new ValidationPipe({ transform: true, enableDebugMessages: true }))
+    @Body(new ValidationPipe({ transform: true }))
     product: CreateProductDto,
-  ): Observable<CreatedProductDto | string | null> {
+  ): Observable<CreatedProductDto[] | null> {
     return this.productService.create(product)
   }
 
@@ -49,7 +49,7 @@ export class ProductController implements ProductControllerInterface {
   update(
     @Param('id') id: string,
     @Body() product: UpdateProductDto,
-  ): Observable<UpdatedProductDto | null | string> {
+  ): Observable<UpdatedProductDto | null> {
     return this.productService.update(id, product)
   }
 
@@ -60,7 +60,7 @@ export class ProductController implements ProductControllerInterface {
 
   @Post('favourite')
   favourite(
-    @Body(new ValidationPipe({ transform: true, enableDebugMessages: true }))
+    @Body(new ValidationPipe({ transform: true }))
     favDto: FavouriteProductDto,
   ): Observable<UpdatedProductDto | null | string> {
     return this.productService.favourite(favDto.productId, favDto.userId)

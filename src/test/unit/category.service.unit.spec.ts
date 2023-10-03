@@ -159,10 +159,10 @@ describe('CategoryService', () => {
       }
       jest
         .spyOn(categoryRepository, 'create')
-        .mockReturnValue(of(createdCategoryDto))
+        .mockReturnValue(of([createdCategoryDto]))
 
       categoryService.create(createCategoryDto).subscribe((result) => {
-        expect(result).toEqual(createdCategoryDto)
+        expect(result).toEqual([createdCategoryDto])
         done()
       })
     })

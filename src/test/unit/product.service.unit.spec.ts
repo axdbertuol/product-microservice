@@ -292,12 +292,12 @@ describe('ProductService', () => {
         .mockReturnValue(of([{ _id: '123', name: 'Category A' }]))
       jest
         .spyOn(productRepository, 'create')
-        .mockReturnValue(of(createdProductDto))
+        .mockReturnValue(of([createdProductDto]))
 
       productService
         .create(createProductDto)
-        .subscribe((result: CreatedProductDto) => {
-          expect(result).toEqual(createdProductDto)
+        .subscribe((result: CreatedProductDto[]) => {
+          expect(result).toEqual([createdProductDto])
           done()
         })
     })
@@ -358,12 +358,10 @@ describe('ProductService', () => {
         .spyOn(productRepository, 'update')
         .mockReturnValue(of(updatedProductDto))
 
-      productService
-        .update(productId, updateProductDto)
-        .subscribe((result: string) => {
-          expect(result).toEqual(updatedProductDto)
-          done()
-        })
+      productService.update(productId, updateProductDto).subscribe((result) => {
+        expect(result).toEqual(updatedProductDto)
+        done()
+      })
     })
 
     it('should return "Product not found" when product not found', (done) => {
@@ -374,12 +372,10 @@ describe('ProductService', () => {
       }
       jest.spyOn(productRepository, 'update').mockReturnValue(of(null))
 
-      productService
-        .update(productId, updateProductDto)
-        .subscribe((result: string) => {
-          expect(result).toBe('Product not found')
-          done()
-        })
+      productService.update(productId, updateProductDto).subscribe((result) => {
+        expect(result).toBe(null)
+        done()
+      })
     })
 
     it('should throw an error when an error occurs', (done) => {
@@ -426,8 +422,8 @@ describe('ProductService', () => {
       const productId = '123'
       jest.spyOn(productRepository, 'delete').mockReturnValue(of(null))
 
-      productService.delete(productId).subscribe((result: string) => {
-        expect(result).toBe('Product not found')
+      productService.delete(productId).subscribe((result) => {
+        expect(result).toBe(null)
         done()
       })
     })

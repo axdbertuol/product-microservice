@@ -245,18 +245,18 @@ describe('ProductRepository', () => {
         price: 10,
       }
 
-      const mockProduct = new Product() as ProductDocument
+      const mockProduct: CreatedProductDto = {
+        _id: 'mockId',
+        ...createProductDto,
+        category: 'Category 1' as unknown as Category,
+      }
       const wrapProduct = {
         toObject: () => mockProduct,
       } as ProductDocument
-      mockProduct._id = 'mockId' as unknown as ObjectId
-      mockProduct.name = 'New Product'
-      mockProduct.category = 'Category 1' as unknown as Category
-      mockProduct.price = 10
 
       jest
         .spyOn(productModel, 'create')
-        .mockImplementationOnce(() => Promise.resolve(wrapProduct))
+        .mockReturnValueOnce(Promise.resolve([wrapProduct]))
 
       const expectedResult: CreatedProductDto = {
         _id: 'mockId',
@@ -267,7 +267,7 @@ describe('ProductRepository', () => {
 
       repository.create(createProductDto).subscribe({
         next: (result) => {
-          expect(result).toEqual(expectedResult)
+          expect(result).toEqual([expectedResult])
           done()
         },
         error: done.fail,
@@ -328,7 +328,7 @@ describe('ProductRepository', () => {
         price: 20,
       }
 
-      repository.update(id, updateProductDto as Product).subscribe({
+      repository.update(id, updateProductDto as UpdateProductDto).subscribe({
         next: (result) => {
           expect(result).toEqual(expectedResult)
           done()

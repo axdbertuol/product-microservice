@@ -32,14 +32,17 @@ export class CategoryService implements CRUD {
     )
   }
 
-  findAll(): Observable<FindCategoryDto[]> {
+  findAll(name?: string): Observable<FindCategoryDto[] | null> {
+    if (name) {
+      return this.findByName(name)
+    }
     return this.categoryRepository.findAll().pipe(
       map((category) => category),
       catchError((err) => throwError(() => err)),
     )
   }
 
-  create(category: CreateCategoryDto): Observable<CreatedCategoryDto> {
+  create(category: CreateCategoryDto): Observable<CreatedCategoryDto[] | null> {
     return this.categoryRepository.create(category).pipe(
       map((category) => category),
       catchError((err) => throwError(() => err)),
