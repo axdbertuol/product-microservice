@@ -21,7 +21,19 @@ export class Product {
     ref: 'Category',
   })
   category: Category
-
+  @Prop({
+    validate: {
+      validator: (newValues: ObjectId[]) => {
+        // Compare the Set and Array's sizes, to see if there were any
+        // duplicates. If they're not equal, there was a duplicate, and
+        // validation will fail.
+        return new Set(newValues).size === newValues.length
+      },
+    },
+    // default: [],
+    required: false,
+  })
+  favouritedBy?: ObjectId[]
   _id: ObjectId
 }
 

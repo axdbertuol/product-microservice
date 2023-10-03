@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { Product } from '../entities/product.entity'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { ProductRepository } from '../repository/product.repository'
 import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
@@ -8,6 +7,7 @@ import { Observable, throwError } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 import { CategoryService } from './category.service'
 import { FindProductDto } from '../dto/find-product.dto'
+import { ObjectId } from 'mongoose'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {
@@ -58,6 +58,18 @@ export class ProductService implements ProductServiceInterface {
       .pipe(catchError((err) => throwError(() => err)))
   }
 
+  favourite(
+    productId: string,
+    userId: ObjectId,
+  ): Observable<string | UpdatedProductDto | null> {
+    const product = {
+      id: productId,
+    } as UpdateProductDto
+    return this.update(productId, product as UpdateProductDto, {
+      newFavourite: userId,
+    })
+  }
+
   create(product: CreateProductDto): Observable<CreatedProductDto | null> {
     return this.categoryService.findByName(product.category).pipe(
       mergeMap((categories) => {
@@ -82,26 +94,26 @@ export class ProductService implements ProductServiceInterface {
   update(
     id: string,
     product: UpdateProductDto,
+    { newFavourite }: { newFavourite?: ObjectId } = {},
   ): Observable<UpdatedProductDto | string | null> {
-    const productToBeUpdated = product as Product
-    return this.productRepository.update(id, productToBeUpdated).pipe(
+    return this.productRepository.update(id, product, { newFavourite }).pipe(
       map((updatedProduct) => {
         if (updatedProduct) {
           return updatedProduct
         }
-        return 'Product not found'
+        return null
       }),
       catchError((err) => throwError(() => err)),
     )
   }
 
-  delete(id: string): Observable<string> {
+  delete(id: string): Observable<string | null> {
     return this.productRepository.delete(id).pipe(
       map((deletedProduct) => {
         if (deletedProduct) {
           return `Product ${deletedProduct._id}:${deletedProduct.name} deleted`
         }
-        return 'Product not found'
+        return null
       }),
       catchError((err) => throwError(() => err)),
     )

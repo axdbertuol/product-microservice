@@ -8,6 +8,7 @@ export class UpdateProductDto {
   readonly price?: number
   @Type(() => Category)
   category?: Category
+  favouritedBy?: ObjectId[] | ObjectId
 }
 
 export type UpdatedProductDto = UpdateProductDto | { _id: ObjectId }

@@ -17,6 +17,7 @@ import { ProductControllerInterface } from '../types/controller.d'
 import { FindProductDto } from '../dto/find-product.dto'
 import { Observable } from 'rxjs'
 import { HttpExceptionFilter } from '../filters/http-exception.filter'
+import { FavouriteProductDto } from '../dto/favourite-product.dto'
 
 @Controller('products')
 @UseFilters(HttpExceptionFilter)
@@ -53,7 +54,15 @@ export class ProductController implements ProductControllerInterface {
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Observable<void | string> {
+  delete(@Param('id') id: string): Observable<null | string> {
     return this.productService.delete(id)
+  }
+
+  @Post('favourite')
+  favourite(
+    @Body(new ValidationPipe({ transform: true, enableDebugMessages: true }))
+    favDto: FavouriteProductDto,
+  ): Observable<UpdatedProductDto | null | string> {
+    return this.productService.favourite(favDto.productId, favDto.userId)
   }
 }

@@ -2,8 +2,8 @@ POST http://localhost:3333/products HTTP/1.1
 content-type: application/json
 
 {
-    "name": "Men\"s Leather Jacket 2",
-    "description":"A stylish leather jacket for men.",
+    "name": "Women\"s Leather Jacket",
+    "description":"A stylish leather jacket for women.",
     "category":  "Clothing",
     "price": 150
 }
@@ -19,8 +19,23 @@ content-type: application/json
 
 ###
 
+POST http://localhost:3333/products/favourite HTTP/1.1
+content-type: application/json
+
+{
+    "productId": "651b3ca098550bf75b566d96",
+    "userId": "b"
+}
+###
+
 GET http://localhost:3333/products?cat=&search= HTTP/1.1
 content-type: application/json
+
+###
+
+GET http://localhost:3333/products/651b3ca098550bf75b566d96 HTTP/1.1
+content-type: application/json
+
 
 ###
 

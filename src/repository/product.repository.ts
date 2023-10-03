@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model, LeanDocument } from 'mongoose'
+import { Model, ObjectId } from 'mongoose'
 import { Product, ProductDocument } from '../entities/product.entity'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { ProductRepositoryInterface } from '../types/repository'
 import { Observable, throwError, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindProductDto } from '../dto/find-product.dto'
-import { UpdatedProductDto } from 'src/dto/update-product.dto'
+import { UpdatedProductDto, UpdateProductDto } from '../dto/update-product.dto'
 import { Category } from 'src/entities/category.entity'
 
 @Injectable()
@@ -126,10 +126,27 @@ export class ProductRepository implements ProductRepositoryInterface {
     )
   }
 
-  update(id: string, product: Product): Observable<UpdatedProductDto | null> {
+  update(
+    id: string,
+    product: UpdateProductDto,
+    { newFavourite }: { newFavourite?: ObjectId },
+  ): Observable<UpdatedProductDto | null> {
+    const productToBeUpdated = product as Product
+
     return from(
       this.productModel
-        .findByIdAndUpdate(id, product, { new: true })
+        .findByIdAndUpdate(
+          id,
+          {
+            ...productToBeUpdated,
+            ...(newFavourite
+              ? { $addToSet: { favouritedBy: newFavourite } }
+              : null),
+          },
+          {
+            new: true,
+          },
+        )
         .populate({
           path: 'category',
         })
@@ -154,7 +171,7 @@ export class ProductRepository implements ProductRepositoryInterface {
     )
   }
   private mapProductToDto(
-    product: LeanDocument<ProductDocument>,
+    product: ReturnType<(typeof this.productModel)['hydrate']>,
   ): FindProductDto {
     return {
       _id: product._id.toString(),
@@ -162,6 +179,7 @@ export class ProductRepository implements ProductRepositoryInterface {
       description: product?.description,
       category: product?.category as Category,
       price: product?.price,
+      favouritedBy: product?.favouritedBy,
       // Add other mapped properties
     }
   }

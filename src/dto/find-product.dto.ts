@@ -1,6 +1,7 @@
 import { Category } from '../entities/category.entity'
 import { Expose, Transform, Type } from 'class-transformer'
 import { IsString } from 'class-validator'
+import { ObjectId } from 'mongoose'
 export class FindProductDto {
   @Expose({ name: 'id' }) // Expose decorator to set the alias
   @Transform((value) => value.toString()) // Transform decorator to convert the value to string
@@ -11,4 +12,5 @@ export class FindProductDto {
   price?: number
   @Type(() => Category)
   category?: Category
+  favouritedBy?: ObjectId[]
 }
