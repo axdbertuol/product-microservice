@@ -3,7 +3,7 @@ import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
 import { ProductRepository } from '../repository/product.repository'
 import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
 import { ProductServiceInterface } from '../types/service'
-import { Observable, throwError } from 'rxjs'
+import { Observable, of, throwError } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 import { CategoryService } from './category.service'
 import { FindProductDto } from '../dto/find-product.dto'
@@ -39,10 +39,18 @@ export class ProductService implements ProductServiceInterface {
       }
       return this.findAllByCategory(category)
     }
+    // what if search is a category?
     if (search) {
-      return this.productRepository
-        .findAllByName(search)
-        .pipe(catchError((err) => throwError(() => err)))
+      return of(
+        this.productRepository.findAllByName(search),
+        this.productRepository.findAllByCategory(search),
+      ).pipe(
+        mergeMap((products) => {
+          console.log('mm', products)
+          return products
+        }),
+        catchError((err) => throwError(() => err)),
+      )
     }
     return this.productRepository
       .findAll()
