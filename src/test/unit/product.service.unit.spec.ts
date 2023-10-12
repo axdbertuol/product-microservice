@@ -226,16 +226,15 @@ describe('ProductService', () => {
       jest
         .spyOn(productRepository, 'findAllByName')
         .mockReturnValue(of(findProductDto))
+      jest.spyOn(productRepository, 'findAllByCategory').mockReturnValue(of([]))
 
-      productService
-        .findAll(search, category)
-        .subscribe((result: FindProductDto[]) => {
-          expect(result).toEqual(findProductDto)
-          done()
-        })
+      productService.findAll(search).subscribe((result: FindProductDto[]) => {
+        expect(result).toEqual(findProductDto)
+        done()
+      })
     })
 
-    it('should return all products when category is not provided', (done) => {
+    it('should return all products when no arg is provided', (done) => {
       const findProductDto: FindProductDto[] = [
         {
           _id: '1',
@@ -256,6 +255,31 @@ describe('ProductService', () => {
         expect(result).toEqual(findProductDto)
         done()
       })
+    })
+    it('should return all products of category as search', (done) => {
+      const findProductDto: FindProductDto[] = [
+        {
+          _id: '1',
+          name: 'Product A',
+          category: { name: 'dsad A', _id: '2' } as unknown as Category,
+        },
+        {
+          _id: '2',
+          name: 'Product B',
+          category: { name: 'Category B', _id: '1' } as unknown as Category,
+        },
+      ]
+      jest.spyOn(productRepository, 'findAllByName').mockReturnValue(of([]))
+      jest
+        .spyOn(productRepository, 'findAllByCategory')
+        .mockReturnValue(of([findProductDto[0]]))
+
+      productService
+        .findAll('Category B')
+        .subscribe((result: FindProductDto[]) => {
+          expect(result).toEqual([findProductDto[0]])
+          done()
+        })
     })
 
     it('should throw an error when an error occurs', (done) => {
