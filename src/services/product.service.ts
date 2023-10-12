@@ -47,12 +47,14 @@ export class ProductService implements ProductServiceInterface {
       const byCategory = this.productRepository.findAllByCategory(search)
       return byName.pipe(
         mergeMap((productsByName) => {
-          return byCategory.pipe(
-            mergeMap((productsByCat) => {
-              const result = unionBy(productsByName, productsByCat, '_id')
-              return of(result)
-            }),
-          )
+          if (byCategory)
+            return byCategory.pipe(
+              mergeMap((productsByCat) => {
+                const result = unionBy(productsByName, productsByCat, '_id')
+                return of(result)
+              }),
+            )
+          return of(productsByName)
         }),
         catchError((err) => throwError(() => err)),
       )

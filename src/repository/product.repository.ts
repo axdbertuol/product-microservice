@@ -64,7 +64,7 @@ export class ProductRepository implements ProductRepositoryInterface {
 
   findAllByCategoryAndName(
     search: string,
-    category: string,
+    category?: string,
   ): Observable<FindProductDto[]> {
     return from(
       this.productModel
@@ -73,7 +73,7 @@ export class ProductRepository implements ProductRepositoryInterface {
         })
         .populate({
           path: 'category',
-          match: { name: { $regex: category, $options: 'i' } },
+          match: { name: { $regex: category ?? search, $options: 'i' } },
         })
         .exec(),
     ).pipe(
