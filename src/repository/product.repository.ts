@@ -39,7 +39,9 @@ export class ProductRepository implements ProductRepositoryInterface {
         .find()
         .populate({
           path: 'category',
-          match: { name: { $regex: category, $options: 'i' } },
+          match: {
+            name: { $regex: category, $options: 'i' },
+          },
         })
         .exec(),
       // .then((res) =>
@@ -69,11 +71,21 @@ export class ProductRepository implements ProductRepositoryInterface {
     return from(
       this.productModel
         .find({
-          name: { $regex: search, $options: 'i' },
+          $or: [
+            {
+              name: { $regex: search, $options: 'i' },
+            },
+            {
+              $text: { $search: search, $caseSensitive: false },
+            },
+          ],
         })
         .populate({
           path: 'category',
-          match: { name: { $regex: category ?? search, $options: 'i' } },
+          // match: { name: { $regex: category ?? search, $options: 'i' } },
+          match: {
+            name: { $regex: category ?? search, $options: 'i' },
+          },
         })
         .exec(),
     ).pipe(
@@ -92,7 +104,12 @@ export class ProductRepository implements ProductRepositoryInterface {
     return from(
       this.productModel
         .find({
-          name: { $regex: search, $options: 'i' },
+          $or: [
+            {
+              name: { $regex: search, $options: 'i' },
+            },
+            { $text: { $search: search, $caseSensitive: false } },
+          ],
         })
         .populate({
           path: 'category',

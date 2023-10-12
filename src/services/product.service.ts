@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ObjectId } from 'mongoose'
 import { unionBy } from 'lodash'
-import { Observable, of, throwError } from 'rxjs'
+import { Observable, forkJoin, throwError } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
@@ -43,18 +43,14 @@ export class ProductService implements ProductServiceInterface {
     }
     // what if search is a category?
     if (search) {
-      const byName = this.productRepository.findAllByName(search)
-      const byCategory = this.productRepository.findAllByCategory(search)
-      return byName.pipe(
-        mergeMap((productsByName) => {
-          if (byCategory)
-            return byCategory.pipe(
-              mergeMap((productsByCat) => {
-                const result = unionBy(productsByName, productsByCat, '_id')
-                return of(result)
-              }),
-            )
-          return of(productsByName)
+      return forkJoin([
+        this.productRepository.findAllByName(search),
+        this.productRepository.findAllByCategory(search),
+      ]).pipe(
+        map(([resultByName, resultByCategory]) => {
+          // Handle the merged results
+          const result = unionBy(resultByName, resultByCategory, '_id')
+          return result
         }),
         catchError((err) => throwError(() => err)),
       )

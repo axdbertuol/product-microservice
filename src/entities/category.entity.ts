@@ -5,7 +5,7 @@ export type CategoryDocument = HydratedDocument<Category>
 
 @Schema()
 export class Category extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   name: string
 
   _id: ObjectId
