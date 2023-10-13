@@ -8,6 +8,7 @@ import {
   Param,
   ValidationPipe,
   Query,
+  UseFilters,
 } from '@nestjs/common'
 import { CategoryService } from '../services/category.service'
 import {
@@ -18,11 +19,13 @@ import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
 } from '../dto/update-category.dto'
-import { FindCategoryDto } from 'src/dto/find-category.dto'
+import { FindCategoryDto } from '../dto/find-category.dto'
 import { Observable } from 'rxjs'
-import { CRUD } from 'src/types/base'
+import { CRUD } from '../types/base'
+import { HttpExceptionFilter } from '../filters/http-exception.filter'
 
 @Controller('categories')
+@UseFilters(HttpExceptionFilter)
 export class CategoryController implements CRUD {
   constructor(private readonly categoryService: CategoryService) {}
 
