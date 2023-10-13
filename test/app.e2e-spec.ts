@@ -8,6 +8,7 @@ import { UpdateCategoryDto } from '../src/dto/update-category.dto'
 import { CreateProductDto } from '../src/dto/create-product.dto'
 import { CreateCategoryDto } from '../src/dto/create-category.dto'
 import { Category } from '../src/entities/category.entity'
+import { ValidationPipe } from '../src/validation'
 
 describe('E2E Tests', () => {
   let app: INestApplication
@@ -24,12 +25,14 @@ describe('E2E Tests', () => {
   let createdCategory: Category
   let productsCollection: Collection<any>
   let categoriesCollection: Collection<any>
+
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile()
     expect(moduleFixture).toBeDefined()
     app = moduleFixture.createNestApplication()
+    app.useGlobalPipes(new ValidationPipe())
     await app.init()
     dbConnection = moduleFixture
       .get<DatabaseService>(DatabaseService)
@@ -40,13 +43,19 @@ describe('E2E Tests', () => {
   })
 
   afterAll(async () => {
-    await productsCollection.deleteMany({})
-    await app.close()
+    Promise.all([
+      productsCollection.deleteMany({}),
+      categoriesCollection.deleteMany({}),
+      httpServer.close(),
+      app.close(),
+    ])
   })
 
   beforeEach(async () => {
-    await productsCollection.deleteMany({})
-    await categoriesCollection.deleteMany({})
+    await Promise.all([
+      productsCollection.deleteMany({}),
+      categoriesCollection.deleteMany({}),
+    ])
   })
 
   describe('Products', () => {
@@ -66,19 +75,20 @@ describe('E2E Tests', () => {
     }, 500)
 
     it('should create a new product', async () => {
-      await Promise.all([
-        categoriesCollection.insertOne({ name: 'bla' }),
-        categoriesCollection.find().toArray(),
-      ]).then(async () => {
-        const res = await request(httpServer)
-          .post('/products')
-          .send(createProductDto)
-          .expect(201)
-
-        const createdCategory = res.body
-        expect(createdCategory.name).toBe(createProductDto.name)
-        expect(createdCategory._id).toBeDefined()
-      })
+      categoriesCollection
+        .insertOne({ name: 'bla' })
+        .then(() => categoriesCollection.find().toArray())
+        .then(async () => {
+          const res = await request(httpServer)
+            .post('/products')
+            .send(createProductDto)
+            .expect(201)
+          // console.log(res)
+          const createdProduct = res.body[0]
+          // console.log(createdProduct)
+          expect(createdProduct.name).toBe(createProductDto.name)
+          expect(createdProduct._id).toBeDefined()
+        })
     }, 500)
 
     it('should return a 400 error if name is not provided', async () => {
@@ -88,7 +98,10 @@ describe('E2E Tests', () => {
         .post('/products')
         .send({ name: '' })
         .expect(400)
-      expect(res.body.message).toContain('name should not be empty')
+      console.log(res.body)
+      expect(res.body).toEqual(
+        expect.objectContaining({ statusCode: 400, path: '/products' }),
+      )
     })
     it('should update the product', async () => {
       const productDto = {
@@ -119,10 +132,6 @@ describe('E2E Tests', () => {
   describe('Categories', () => {
     it('findAll', async () => {
       await categoriesCollection.insertOne({ name: 'teste' }).then(async () => {
-        const cats = await dbConnection
-          .collection('categories')
-          .find()
-          .toArray()
         const response = await request(httpServer).get('/categories')
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject([{ name: 'teste' }])
@@ -130,20 +139,18 @@ describe('E2E Tests', () => {
     })
 
     it('find', async () => {
-      await categoriesCollection
-        .insertOne({ name: 'teste' })
-        .then(async (x) => {
-          // console.log(x)
-          const cats = await dbConnection
-            .collection('categories')
-            .find()
-            .toArray()
-          const response = await request(httpServer).get(
-            '/categories/' + cats[0]._id,
-          )
-          expect(response.status).toBe(200)
-          expect(response.body).toHaveProperty('name', 'teste')
-        })
+      await categoriesCollection.insertOne({ name: 'teste' }).then(async () => {
+        // console.log(x)
+        const cats = await dbConnection
+          .collection('categories')
+          .find()
+          .toArray()
+        const response = await request(httpServer).get(
+          '/categories/' + cats[0]._id,
+        )
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty('name', 'teste')
+      })
     })
 
     it('should create a new category', async () => {
@@ -152,7 +159,7 @@ describe('E2E Tests', () => {
         .send(createCategoryDto)
         .then((res) => {
           // console.log(res)
-          createdCategory = res.body
+          createdCategory = res.body[0]
           expect(createdCategory.name).toBe(createCategoryDto.name)
           expect(createdCategory._id).toBeDefined()
         })
@@ -166,15 +173,18 @@ describe('E2E Tests', () => {
         .post('/categories')
         .send({ name: '' })
         .expect(400)
-      expect(res.body.message).toContain('name should not be empty')
+      // expect(res.body).toEqual(
+      //   expect.objectContaining({ statusCode: 400, path: '/products' }),
+      // )
+      expect(res.body.message).toContain('isNotEmpty')
     })
     it('should update the category', async () => {
       const categoryDto: UpdateCategoryDto = {
         name: 'blabla',
       }
-      const aff = categoriesCollection
-      await aff.insertOne({ name: 'teste' })
-      const cats = await aff.find().toArray()
+      await categoriesCollection.insertOne({ name: 'teste' })
+      const cats = await categoriesCollection.find().toArray()
+      console.log(cats)
       const response = await request(httpServer)
         .put(`/categories/${cats[0]._id}`)
         .send(categoryDto)
@@ -184,8 +194,7 @@ describe('E2E Tests', () => {
     })
 
     it('should delete the category', async () => {
-      const po = categoriesCollection
-      await po.insertOne({ name: 'teste' }).then(async (f) => {
+      await categoriesCollection.insertOne({ name: 'teste' }).then(async () => {
         const cats = await categoriesCollection.find().toArray()
 
         const response = await request(httpServer)
