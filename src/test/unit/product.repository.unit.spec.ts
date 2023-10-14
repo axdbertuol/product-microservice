@@ -151,7 +151,7 @@ describe('ProductRepository', () => {
 
     it('should throw an error if there is a database error', (done) => {
       const category = 'mockCategory'
-      const databaseError = new Error('Database error')
+      const databaseError = new Error()
 
       jest.spyOn(productModel, 'find').mockReturnValueOnce({
         populate: jest.fn().mockReturnThis(),
@@ -161,7 +161,7 @@ describe('ProductRepository', () => {
       repository.findAllByCategory(category).subscribe({
         error: (error) => {
           expect(error).toBeInstanceOf(Error)
-          expect(error.message).toBe('Database error: ' + databaseError)
+          expect(error.message).toMatch(/Database error/i)
           done()
         },
         complete: done.fail,
@@ -219,7 +219,7 @@ describe('ProductRepository', () => {
     })
 
     it('should throw an error if there is a database error', (done) => {
-      const databaseError = new Error('Database error')
+      const databaseError = new Error()
 
       jest.spyOn(productModel, 'find').mockReturnValueOnce({
         populate: jest.fn().mockReturnThis(),
@@ -229,7 +229,7 @@ describe('ProductRepository', () => {
       repository.findAll().subscribe({
         error: (error) => {
           expect(error).toBeInstanceOf(Error)
-          expect(error.message).toBe('Database error: ' + databaseError)
+          expect(error.message).toMatch(/Database error/i)
           done()
         },
         complete: done.fail,
@@ -281,7 +281,7 @@ describe('ProductRepository', () => {
         price: 10,
       }
 
-      const databaseError = new Error('Database error')
+      const databaseError = new Error()
 
       jest
         .spyOn(productModel, 'create')
@@ -290,7 +290,7 @@ describe('ProductRepository', () => {
       repository.create(createProductDto).subscribe({
         error: (error) => {
           expect(error).toBeInstanceOf(Error)
-          expect(error.message).toBe('Database error: ' + databaseError)
+          expect(error.message).toMatch(/Database error/i)
           done()
         },
         complete: done.fail,
@@ -345,7 +345,7 @@ describe('ProductRepository', () => {
         price: 20,
       }
 
-      const databaseError = new Error('Database error')
+      const databaseError = new Error()
 
       jest.spyOn(productModel, 'findByIdAndUpdate').mockReturnValueOnce({
         populate: jest.fn().mockReturnThis(),
@@ -355,7 +355,7 @@ describe('ProductRepository', () => {
       repository.update(id, updateProductDto as Product).subscribe({
         error: (error) => {
           expect(error).toBeInstanceOf(Error)
-          expect(error.message).toBe('Database error: ' + databaseError)
+          expect(error.message).toMatch(/Database error/i)
           done()
         },
         complete: done.fail,

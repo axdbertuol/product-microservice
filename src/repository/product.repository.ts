@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { ConflictException, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, ObjectId } from 'mongoose'
 import { Product, ProductDocument } from '../entities/product.entity'
@@ -44,11 +44,6 @@ export class ProductRepository implements ProductRepositoryInterface {
           },
         })
         .exec(),
-      // .then((res) =>
-      //   res
-      //     .filter((prod) => prod.category)
-      //     .map((prod) => this.mapProductToDto(prod)),
-      // ),
     ).pipe(
       map((docs) =>
         docs
@@ -141,9 +136,11 @@ export class ProductRepository implements ProductRepositoryInterface {
           doc?.map((d) => (d.toObject() as CreatedProductDto) || null) ?? null
         )
       }),
-      catchError((err) =>
-        throwError(() => new Error('Database error: ' + err)),
-      ),
+      catchError((err) => {
+        if (err.code === 11000)
+          throw new ConflictException('Product already exists')
+        throw new Error('Database error: ' + err)
+      }),
     )
   }
 
@@ -174,9 +171,11 @@ export class ProductRepository implements ProductRepositoryInterface {
         .exec(),
     ).pipe(
       map((doc) => (doc && (doc.toObject() as UpdatedProductDto)) || null),
-      catchError((err) =>
-        throwError(() => new Error('Database error: ' + err)),
-      ),
+      catchError((err) => {
+        if (err?.code === 11000)
+          throw new ConflictException('Item already exists')
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 

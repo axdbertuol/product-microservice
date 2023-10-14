@@ -87,7 +87,7 @@ describe('ProductService', () => {
       productService.find(productId).subscribe({
         // next: () => {},
         error: (err) => {
-          expect(err.message).toBe(`Error: ${error.message}`)
+          expect(err.message).toBe(error.message)
           done()
         },
       })

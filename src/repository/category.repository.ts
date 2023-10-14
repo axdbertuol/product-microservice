@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { ConflictException, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { CRUD } from '../types/base.d'
@@ -7,7 +7,7 @@ import {
   CreateCategoryDto,
   CreatedCategoryDto,
 } from '../dto/create-category.dto'
-import { Observable, throwError, from } from 'rxjs'
+import { Observable, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindCategoryDto } from '../dto/find-category.dto'
 import { UpdatedCategoryDto } from 'src/dto/update-category.dto'
@@ -22,7 +22,9 @@ export class CategoryRepository implements CRUD {
   find(id: string): Observable<FindCategoryDto | null> {
     return from(this.categoryModel.findById(id).exec()).pipe(
       map((doc) => (doc && (doc.toObject() as FindCategoryDto)) || null),
-      catchError((err) => throwError(() => new Error(err))),
+      catchError((err) => {
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 
@@ -35,14 +37,18 @@ export class CategoryRepository implements CRUD {
       map((docs) =>
         docs.map((doc) => (doc && (doc.toObject() as FindCategoryDto)) || null),
       ),
-      catchError((err) => throwError(() => new Error(err))),
+      catchError((err) => {
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 
   findAll(): Observable<FindCategoryDto[]> {
     return from(this.categoryModel.find().exec()).pipe(
       map((docs) => docs.map((doc) => doc.toObject() as FindCategoryDto)),
-      catchError((err) => throwError(() => new Error(err))),
+      catchError((err) => {
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 
@@ -52,7 +58,11 @@ export class CategoryRepository implements CRUD {
         (doc) =>
           (doc && doc.map((d) => d.toObject() as CreatedCategoryDto)) || null,
       ),
-      catchError((err) => throwError(() => new Error(err))),
+      catchError((err) => {
+        if (err?.code === 11000)
+          throw new ConflictException('Category already exists')
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 
@@ -64,7 +74,11 @@ export class CategoryRepository implements CRUD {
       this.categoryModel.findByIdAndUpdate(id, category, { new: true }).exec(),
     ).pipe(
       map((doc) => (doc && (doc.toObject() as UpdatedCategoryDto)) || null),
-      catchError((err) => throwError(() => new Error(err))),
+      catchError((err) => {
+        if (err?.code === 11000)
+          throw new ConflictException('Category already exists')
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 
@@ -74,7 +88,9 @@ export class CategoryRepository implements CRUD {
         (doc) =>
           (doc && (doc.toObject() as { _id: string; name: string })) || null,
       ),
-      catchError((err) => throwError(() => new Error(err))),
+      catchError((err) => {
+        throw new Error('Database Error: ' + err.message)
+      }),
     )
   }
 }

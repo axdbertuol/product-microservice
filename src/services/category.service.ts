@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { CRUD } from '../types/base.d'
 import { CategoryRepository } from '../repository/category.repository'
 import {
@@ -66,7 +66,7 @@ export class CategoryService implements CRUD {
         if (category) {
           return `category ${category._id}:${category.name} deleted`
         }
-        return `category not found`
+        throw new BadRequestException('Category not found')
       }),
       catchError((err) => throwError(() => err)),
     )

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { ObjectId } from 'mongoose'
 import { unionBy } from 'lodash'
 import { Observable, forkJoin, throwError } from 'rxjs'
@@ -20,14 +20,16 @@ export class ProductService implements ProductServiceInterface {
 
   find(id: string): Observable<FindProductDto | null> {
     return this.productRepository.find(id).pipe(
-      map((product) => product as unknown as FindProductDto),
-      catchError((err) => throwError(() => new Error(err))),
+      map((product) => product as FindProductDto),
+      catchError((err) => throwError(() => err)),
     )
   }
 
   findAllByCategory(category?: string): Observable<FindProductDto[]> {
     if (!category || category.length === 0) {
-      return throwError(() => new Error('Category name not provided'))
+      return throwError(
+        () => new BadRequestException('Category name not provided'),
+      )
     }
     return this.productRepository
       .findAllByCategory(category)
@@ -85,7 +87,7 @@ export class ProductService implements ProductServiceInterface {
     return this.categoryService.findByName(product.category).pipe(
       mergeMap((categories) => {
         if (!categories || categories?.length == 0) {
-          return throwError(() => new Error('Should create category first'))
+          throw new BadRequestException('Should create category first')
         }
         const id = categories?.at(0)?._id
         if (id) {
@@ -96,7 +98,7 @@ export class ProductService implements ProductServiceInterface {
           // this.rabbitMQProvider.sendMessage(result, 'product-creation-success')
           return result
         }
-        return throwError(() => new Error('Category not found'))
+        throw new BadRequestException('Category not found')
       }),
       catchError((err) => throwError(() => err)),
     )

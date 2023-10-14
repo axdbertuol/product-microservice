@@ -98,7 +98,7 @@ describe('E2E Tests', () => {
         .post('/products')
         .send({ name: '' })
         .expect(400)
-      console.log(res.body)
+
       expect(res.body).toEqual(
         expect.objectContaining({ statusCode: 400, path: '/products' }),
       )
@@ -184,7 +184,6 @@ describe('E2E Tests', () => {
       }
       await categoriesCollection.insertOne({ name: 'teste' })
       const cats = await categoriesCollection.find().toArray()
-      console.log(cats)
       const response = await request(httpServer)
         .put(`/categories/${cats[0]._id}`)
         .send(categoryDto)

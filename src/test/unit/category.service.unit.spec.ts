@@ -11,6 +11,7 @@ import {
 } from '../../dto/update-category.dto'
 import { FindCategoryDto } from '../../dto/find-category.dto'
 import { Test } from '@nestjs/testing'
+import { BadRequestException } from '@nestjs/common'
 
 describe('CategoryService', () => {
   let categoryService: CategoryService
@@ -260,11 +261,13 @@ describe('CategoryService', () => {
 
     it('should return "category not found" when category not found', (done) => {
       const id = '123'
-      jest.spyOn(categoryRepository, 'delete').mockReturnValue(of(null))
+      jest.spyOn(categoryRepository, 'delete').mockReturnValueOnce(of(null))
 
-      categoryService.delete(id).subscribe((result) => {
-        expect(result).toBe('category not found')
-        done()
+      categoryService.delete(id).subscribe({
+        error: (err) => {
+          expect(err).toBeInstanceOf(BadRequestException)
+          done()
+        },
       })
     })
 
