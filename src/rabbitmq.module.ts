@@ -2,12 +2,13 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq'
 import { Module } from '@nestjs/common'
 import { RabbitService } from './services/rabbitmq.service'
 import { ConfigService } from '@nestjs/config'
+import { RabbitMQConfig } from './config/types'
 
 @Module({
   imports: [
     RabbitMQModule.forRootAsync(RabbitMQModule, {
       inject: [ConfigService],
-      useFactory(configService: ConfigService) {
+      useFactory(configService: ConfigService<RabbitMQConfig>) {
         return {
           exchanges: [
             {
@@ -16,7 +17,7 @@ import { ConfigService } from '@nestjs/config'
               type: 'direct',
             },
           ],
-          uri: configService.get('RABBITMQ_URL') || '',
+          uri: configService.get('rabbitMqUrl', { infer: true }) || '',
           // enableControllerDiscovery: true,
           // channels: {
           //   'channel-product': {

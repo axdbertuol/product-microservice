@@ -3,14 +3,15 @@ import { ConfigService } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
 import { DatabaseService } from './database.service'
 import { IsExist } from './is-exists.validator'
+import { AllConfigType } from 'src/config/types'
 @Module({
   imports: [
     MongooseModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService<AllConfigType>) => ({
         uri:
-          configService.get<string>('NODE_ENV') === 'test'
-            ? configService.get<string>('DATABASE_TEST_URL')
-            : configService.get<string>('DATABASE_URL'),
+          configService.get('app.nodeEnv', { infer: true }) === 'test'
+            ? configService.get('database.databaseTestUrl', { infer: true })
+            : configService.get('database.databaseUrl', { infer: true }),
       }),
       inject: [ConfigService],
     }),

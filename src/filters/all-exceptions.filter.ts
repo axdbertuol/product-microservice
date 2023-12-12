@@ -23,7 +23,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR
 
-    console.log(ctx.getResponse())
     const responseBody = {
       ...(exception instanceof HttpException
         ? (exception.getResponse() as object)

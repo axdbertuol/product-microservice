@@ -8,6 +8,8 @@ import {
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import validationOptions from './utils/validation-options'
 import { AllExceptionsFilter } from './filters/all-exceptions.filter'
+import { ConfigService } from '@nestjs/config'
+import { AllConfigType } from './config/types'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true })
@@ -19,9 +21,15 @@ async function bootstrap() {
   const httpAdapter = app.get(HttpAdapterHost)
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
   app.useGlobalPipes(new ValidationPipe(validationOptions))
-  app.setGlobalPrefix('api', {
-    exclude: ['/'],
-  })
+  const configService = app.get(ConfigService<AllConfigType>)
+
+  app.enableShutdownHooks()
+  app.setGlobalPrefix(
+    configService.getOrThrow('app.apiPrefix', { infer: true }),
+    {
+      exclude: ['/'],
+    },
+  )
   app.enableVersioning({
     type: VersioningType.URI,
   })
