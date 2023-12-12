@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { ObjectId } from 'mongoose'
 import { unionBy } from 'lodash'
 import { Observable, forkJoin, throwError } from 'rxjs'
@@ -10,6 +14,7 @@ import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
 import { ProductServiceInterface } from '../types/service'
 import { CategoryService } from './category.service'
 import { FindProductDto } from '../dto/find-product.dto'
+import { FindCategoryDto } from 'src/dto/find-category.dto'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {
@@ -28,7 +33,7 @@ export class ProductService implements ProductServiceInterface {
   findAllByCategory(category?: string): Observable<FindProductDto[]> {
     if (!category || category.length === 0) {
       return throwError(
-        () => new BadRequestException('Category name not provided'),
+        () => new BadRequestException({ cause: 'Category name not provided' }),
       )
     }
     return this.productRepository
@@ -87,7 +92,9 @@ export class ProductService implements ProductServiceInterface {
     return this.categoryService.findByName(product.category).pipe(
       mergeMap((categories) => {
         if (!categories || categories?.length == 0) {
-          throw new BadRequestException('Should create category first')
+          throw new BadRequestException({
+            cause: 'Should create category first',
+          })
         }
         const id = categories?.at(0)?._id
         if (id) {
@@ -98,7 +105,7 @@ export class ProductService implements ProductServiceInterface {
           // this.rabbitMQProvider.sendMessage(result, 'product-creation-success')
           return result
         }
-        throw new BadRequestException('Category not found')
+        throw new BadRequestException({ cause: 'Category not found' })
       }),
       catchError((err) => throwError(() => err)),
     )
@@ -106,18 +113,34 @@ export class ProductService implements ProductServiceInterface {
 
   update(
     id: string,
-    product: UpdateProductDto,
+    product: any,
     { newFavourite }: { newFavourite?: ObjectId } = {},
   ): Observable<UpdatedProductDto | null> {
-    return this.productRepository.update(id, product, { newFavourite }).pipe(
-      map((updatedProduct) => {
-        if (updatedProduct) {
-          return updatedProduct
-        }
-        return null
-      }),
-      catchError((err) => throwError(() => err)),
-    )
+    console.log(product)
+    if (product?.category) {
+      return this.categoryService.findByName(product.category).pipe(
+        mergeMap((foundData: FindCategoryDto[]) => {
+          if (!foundData || foundData.length === 0)
+            throw new UnprocessableEntityException({
+              cause: { error: 'Category not found' },
+            })
+          return this.productRepository.update(
+            id,
+            {
+              ...product,
+              category: foundData[0]._id.toString(),
+            },
+            { newFavourite },
+          )
+        }),
+        catchError((err: any) => {
+          throw err
+        }),
+      )
+    }
+    return this.productRepository.update(id, product, {
+      newFavourite,
+    })
   }
 
   delete(id: string): Observable<string | null> {

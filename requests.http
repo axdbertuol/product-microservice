@@ -1,4 +1,4 @@
-POST http://localhost:3333/products HTTP/1.1
+POST http://localhost:3333/api/v1/product HTTP/1.1
 content-type: application/json
 
 {
@@ -10,7 +10,7 @@ content-type: application/json
 
 ###
 
-POST http://localhost:3333/categories HTTP/1.1
+POST http://localhost:3333/api/v1/categories HTTP/1.1
 content-type: application/json
 
 {
@@ -19,7 +19,7 @@ content-type: application/json
 
 ###
 
-POST http://localhost:3333/products/favourite HTTP/1.1
+POST http://localhost:3333/api/v1/product/favourite HTTP/1.1
 content-type: application/json
 
 {
@@ -28,16 +28,16 @@ content-type: application/json
 }
 ###
 
-GET http://localhost:3333/products?search=leather HTTP/1.1
+GET http://localhost:3333/api/v1/product?search=leather HTTP/1.1
 content-type: application/json
 
 ###
 
-GET http://localhost:3333/products/651b3ca098550bf75b566d96 HTTP/1.1
+GET http://localhost:3333/api/v1/product/651b3ca098550bf75b566d96 HTTP/1.1
 content-type: application/json
 
 
 ###
 
-GET http://localhost:3333/categories? HTTP/1.1
+GET http://localhost:3333/api/v1/categories?name=a HTTP/1.1
 content-type: application/json

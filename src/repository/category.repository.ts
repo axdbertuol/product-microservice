@@ -28,15 +28,13 @@ export class CategoryRepository implements CRUD {
     )
   }
 
-  findByName(categoryName: string): Observable<FindCategoryDto[]> {
+  findByName<T extends FindCategoryDto>(categoryName: string): Observable<T[]> {
     return from(
       this.categoryModel
         .find({ name: { $regex: categoryName, $options: 'i' } })
         .exec(),
     ).pipe(
-      map((docs) =>
-        docs.map((doc) => (doc && (doc.toObject() as FindCategoryDto)) || null),
-      ),
+      map((docs) => docs.map((doc) => (doc && (doc.toObject() as T)) || null)),
       catchError((err) => {
         throw new Error('Database Error: ' + err.message)
       }),

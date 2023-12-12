@@ -15,7 +15,7 @@ export class ProductMessagingService {
   ) {}
   @RabbitRPC({
     routingKey: 'product.fetch',
-    exchange: 'product_direct_exchange',
+    exchange: 'product_exchange',
     queueOptions: {
       durable: false,
       autoDelete: true,

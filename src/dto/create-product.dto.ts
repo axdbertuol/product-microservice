@@ -1,11 +1,11 @@
 import { IsNotEmpty, MinLength } from 'class-validator'
-import { Type } from 'class-transformer'
-import { Category } from '../entities/category.entity'
+import { Transform } from 'class-transformer'
 
 export class CreateProductDto {
   @MinLength(2, { message: 'Name should have at least 2 characters' })
   @IsNotEmpty({ message: 'Name should have at least 2 characters' })
   readonly name: string
+  @MinLength(2, { message: 'Name should have at least 2 characters' })
   readonly description?: string
   @IsNotEmpty({ message: 'Price should be set' })
   readonly price: number
@@ -18,6 +18,9 @@ export class CreatedProductDto {
   name: string
   description?: string
   price: number
-  @Type(() => Category)
-  category: Category
+  @Transform(({ value, obj }) => {
+    console.log('aqweuhfd', value, obj)
+    return obj.category
+  })
+  category: string
 }

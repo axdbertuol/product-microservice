@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
 import { DatabaseService } from './database.service'
-
+import { IsExist } from './is-exists.validator'
 @Module({
   imports: [
     MongooseModule.forRootAsync({
@@ -15,7 +15,7 @@ import { DatabaseService } from './database.service'
       inject: [ConfigService],
     }),
   ],
-  providers: [DatabaseService],
-  exports: [DatabaseService],
+  providers: [IsExist, DatabaseService],
+  // exports: [DatabaseService, IsExist],
 })
 export class DatabaseModule {}

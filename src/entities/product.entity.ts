@@ -37,7 +37,10 @@ export class Product {
   _id: ObjectId
 }
 
-export const ProductSchema = SchemaFactory.createForClass(Product)
+export const ProductSchema = SchemaFactory.createForClass(Product).alias(
+  '_id',
+  'id',
+)
 
 // ProductSchema.pre<ProductDocument>('validate', function (this: Product, next) {
 //   if (typeof this.category === 'string') {

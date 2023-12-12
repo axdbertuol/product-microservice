@@ -9,6 +9,8 @@ import { ProductRepository } from './repository/product.repository'
 import { CategoryModule } from './category.module'
 import { RabbitModule } from './rabbitmq.module'
 import { ProductMessagingService } from './services/product-messaging.service'
+import { IsExist } from './database/is-exists.validator'
+import { DatabaseModule } from './database/database.module'
 
 @Module({
   imports: [
@@ -17,9 +19,7 @@ import { ProductMessagingService } from './services/product-messaging.service'
         name: Product.name,
         useFactory: () => {
           const schema = ProductSchema
-          // schema.pre('save', function () {
-          //   console.log('Hello from pre save')
-          // })
+          // schema.pre('findOneAndUpdate', function (next) {})
           return schema
         },
       },
