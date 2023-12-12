@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { CRUD } from '../types/base.d'
 import { CategoryRepository } from '../repository/category.repository'
 import {
@@ -13,6 +13,11 @@ import {
 import { Observable, throwError } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import { FindCategoryDto } from '../dto/find-category.dto'
+import {
+  ERRORS,
+  FROM,
+  KBaseException,
+} from 'src/filters/exceptions/base-exception'
 
 @Injectable()
 export class CategoryService implements CRUD {
@@ -68,7 +73,12 @@ export class CategoryService implements CRUD {
         if (category) {
           return `category ${category._id}:${category.name} deleted`
         }
-        throw new BadRequestException('Category not found')
+        throw new KBaseException(
+          FROM.service,
+          ERRORS.invalidCat,
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          'category',
+        )
       }),
       catchError((err) => throwError(() => err)),
     )

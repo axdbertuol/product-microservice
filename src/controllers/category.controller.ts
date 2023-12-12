@@ -6,12 +6,9 @@ import {
   Put,
   Delete,
   Param,
-  ValidationPipe,
   Query,
-  UseFilters,
   HttpCode,
   HttpStatus,
-  UseInterceptors,
 } from '@nestjs/common'
 import { CategoryService } from '../services/category.service'
 import {
@@ -26,17 +23,13 @@ import { ApiQuery } from '@nestjs/swagger'
 import { FindCategoryDto } from '../dto/find-category.dto'
 import { Observable } from 'rxjs'
 import { CRUD } from '../types/base'
-import { HttpExceptionFilter } from '../filters/http-exception.filter'
 import { ApiTags } from '@nestjs/swagger'
-import MongooseClassSerializerInterceptor from 'src/services/mongoose.interceptor'
 
 @ApiTags('Categories')
 @Controller({
   path: 'categories',
   version: '1',
 })
-@UseFilters(HttpExceptionFilter)
-@UseInterceptors(MongooseClassSerializerInterceptor)
 export class CategoryController implements CRUD {
   constructor(private readonly categoryService: CategoryService) {}
 
@@ -71,7 +64,7 @@ export class CategoryController implements CRUD {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Body(new ValidationPipe({ transform: true })) category: CreateCategoryDto,
+    @Body() category: CreateCategoryDto,
   ): Observable<CreatedCategoryDto[] | null> {
     const result = this.categoryService.create(category)
     return result

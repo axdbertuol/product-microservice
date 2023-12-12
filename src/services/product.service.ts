@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { ObjectId } from 'mongoose'
 import { unionBy } from 'lodash'
 import { Observable, forkJoin, throwError } from 'rxjs'
@@ -15,6 +11,11 @@ import { ProductServiceInterface } from '../types/service'
 import { CategoryService } from './category.service'
 import { FindProductDto } from '../dto/find-product.dto'
 import { FindCategoryDto } from 'src/dto/find-category.dto'
+import {
+  KBaseException,
+  FROM,
+  ERRORS,
+} from 'src/filters/exceptions/base-exception'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {
@@ -32,9 +33,14 @@ export class ProductService implements ProductServiceInterface {
 
   findAllByCategory(category?: string): Observable<FindProductDto[]> {
     if (!category || category.length === 0) {
-      return throwError(
-        () => new BadRequestException({ cause: 'Category name not provided' }),
-      )
+      return throwError(() => {
+        return new KBaseException(
+          FROM.service,
+          ERRORS.invalidCat,
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          'category',
+        )
+      })
     }
     return this.productRepository
       .findAllByCategory(category)
@@ -92,9 +98,12 @@ export class ProductService implements ProductServiceInterface {
     return this.categoryService.findByName(product.category).pipe(
       mergeMap((categories) => {
         if (!categories || categories?.length == 0) {
-          throw new BadRequestException({
-            cause: 'Should create category first',
-          })
+          throw new KBaseException(
+            FROM.service,
+            ERRORS.invalidCat,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            'category',
+          )
         }
         const id = categories?.at(0)?._id
         if (id) {
@@ -105,7 +114,12 @@ export class ProductService implements ProductServiceInterface {
           // this.rabbitMQProvider.sendMessage(result, 'product-creation-success')
           return result
         }
-        throw new BadRequestException({ cause: 'Category not found' })
+        throw new KBaseException(
+          FROM.service,
+          ERRORS.invalidCat,
+          HttpStatus.BAD_REQUEST,
+          'category',
+        )
       }),
       catchError((err) => throwError(() => err)),
     )
@@ -121,9 +135,12 @@ export class ProductService implements ProductServiceInterface {
       return this.categoryService.findByName(product.category).pipe(
         mergeMap((foundData: FindCategoryDto[]) => {
           if (!foundData || foundData.length === 0)
-            throw new UnprocessableEntityException({
-              cause: { error: 'Category not found' },
-            })
+            throw new KBaseException(
+              FROM.service,
+              ERRORS.invalidCat,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              'category',
+            )
           return this.productRepository.update(
             id,
             {

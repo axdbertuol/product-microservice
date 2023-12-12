@@ -1,4 +1,4 @@
-import { NestFactory, Reflector } from '@nestjs/core'
+import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core'
 import { AppModule } from './app.module'
 import {
   ClassSerializerInterceptor,
@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import validationOptions from './utils/validation-options'
+import { AllExceptionsFilter } from './filters/all-exceptions.filter'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true })
@@ -15,8 +16,9 @@ async function bootstrap() {
       enableCircularCheck: true,
     }),
   )
+  const httpAdapter = app.get(HttpAdapterHost)
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
   app.useGlobalPipes(new ValidationPipe(validationOptions))
-
   app.setGlobalPrefix('api', {
     exclude: ['/'],
   })

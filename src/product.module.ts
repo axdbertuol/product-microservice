@@ -9,8 +9,6 @@ import { ProductRepository } from './repository/product.repository'
 import { CategoryModule } from './category.module'
 import { RabbitModule } from './rabbitmq.module'
 import { ProductMessagingService } from './services/product-messaging.service'
-import { IsExist } from './database/is-exists.validator'
-import { DatabaseModule } from './database/database.module'
 
 @Module({
   imports: [

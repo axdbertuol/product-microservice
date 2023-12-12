@@ -9,7 +9,6 @@ import {
   Query,
   HttpStatus,
   HttpCode,
-  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common'
 import { ProductService } from '../services/product.service'
@@ -20,8 +19,6 @@ import { FindProductDto } from '../dto/find-product.dto'
 import { Observable } from 'rxjs'
 import { FavouriteProductDto } from '../dto/favourite-product.dto'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
-import MongooseClassSerializerInterceptor from 'src/services/mongoose.interceptor'
-import validationOptions from 'src/utils/validation-options'
 
 @ApiTags('Product')
 @Controller({

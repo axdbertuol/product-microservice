@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-} from '@nestjs/common'
+import { ConflictException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import mongoose, { Model, ObjectId } from 'mongoose'
 import { Product, ProductDocument } from '../entities/product.entity'
@@ -12,6 +8,11 @@ import { Observable, throwError, from, timer } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 import { FindProductDto } from '../dto/find-product.dto'
 import { UpdatedProductDto, UpdateProductDto } from '../dto/update-product.dto'
+import {
+  KBaseException,
+  FROM,
+  ERRORS,
+} from 'src/filters/exceptions/base-exception'
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
@@ -33,11 +34,19 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
-            throw new BadRequestException({
-              cause: { error: 'Error casting variable ' + err.path },
-            })
+            throw new KBaseException(
+              FROM.repo,
+              ERRORS.unexpected,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              err.path,
+            )
           }
-          throw new Error('Database error: ' + err)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.unexpected,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            err.path,
+          )
         }),
       ),
     )
@@ -66,11 +75,19 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
-            throw new BadRequestException({
-              cause: { error: 'Error casting variable ' + err.path },
-            })
+            throw new KBaseException(
+              FROM.repo,
+              ERRORS.unexpected,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              err.path,
+            )
           }
-          throw new Error('Database error: ' + err)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.unexpected,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            err.path,
+          )
         }),
       ),
     )
@@ -109,11 +126,19 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
-            throw new BadRequestException({
-              cause: { error: 'Error casting variable ' + err.path },
-            })
+            throw new KBaseException(
+              FROM.repo,
+              ERRORS.unexpected,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              err.path,
+            )
           }
-          throw new Error('Database error: ' + err)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.unexpected,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            err.path,
+          )
         }),
       ),
     )
@@ -139,11 +164,19 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
-            throw new BadRequestException({
-              cause: { error: 'Error casting variable ' + err.path },
-            })
+            throw new KBaseException(
+              FROM.repo,
+              ERRORS.unexpected,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              err.path,
+            )
           }
-          throw new Error('Database error: ' + err)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.unexpected,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            err.path,
+          )
         }),
       ),
     )
@@ -157,11 +190,19 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
-            throw new BadRequestException({
-              cause: { error: 'Error casting variable ' + err.path },
-            })
+            throw new KBaseException(
+              FROM.repo,
+              ERRORS.unexpected,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              err.path,
+            )
           }
-          throw new Error('Database error: ' + err)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.unexpected,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            err.path,
+          )
         }),
       ),
     )
@@ -180,7 +221,6 @@ export class ProductRepository implements ProductRepositoryInterface {
         const arr = [] as any[]
         const subscript = observable.subscribe({
           next: (value) => {
-            console.log(value)
             arr.push(this.mapProductToDto(value) as CreatedProductDto)
           },
         })
@@ -193,14 +233,27 @@ export class ProductRepository implements ProductRepositoryInterface {
         )
       }),
       catchError((err) => {
-        if (err.code === 11000)
-          throw new ConflictException({ cause: 'Product already exists' })
+        if (err?.code === 11000)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.conflict,
+            HttpStatus.CONFLICT,
+            err.path,
+          )
         if (err instanceof mongoose.Error.CastError) {
-          throw new BadRequestException({
-            cause: { error: 'Error casting variable ' + err.path },
-          })
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.cast,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            err.path,
+          )
         }
-        throw new Error('Database error: ' + err)
+        throw new KBaseException(
+          FROM.repo,
+          ERRORS.unexpected,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          err.path,
+        )
       }),
     )
   }
@@ -247,14 +300,23 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) => {
         if (err?.code === 11000)
           throw new ConflictException({
-            cause: { error: 'Item already exists' },
+            cause: { error: 'conflictOnUpdate:' + err.path },
+            message: err.message,
           })
         if (err instanceof mongoose.Error.CastError) {
-          throw new BadRequestException({
-            cause: { error: 'Error casting variable ' + err.path },
-          })
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.cast,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            err.path,
+          )
         }
-        throw new Error('Database error: ' + err)
+        throw new KBaseException(
+          FROM.repo,
+          ERRORS.unexpected,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          err.path,
+        )
       }),
     )
   }
@@ -268,11 +330,19 @@ export class ProductRepository implements ProductRepositoryInterface {
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
-            throw new BadRequestException({
-              cause: { error: 'Error casting variable ' + err.path },
-            })
+            throw new KBaseException(
+              FROM.repo,
+              ERRORS.cast,
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              err.path,
+            )
           }
-          throw new Error('Database error: ' + err)
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.unexpected,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            err.path,
+          )
         }),
       ),
     )
