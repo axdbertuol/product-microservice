@@ -17,7 +17,6 @@ export class IsExist implements ValidatorConstraintInterface {
   ) {}
 
   async validate(value: string, validationArguments: ValidationArguments) {
-    console.log('asdasd', this.dataSource)
     const repository = validationArguments.constraints[0]
     const pathToProperty = validationArguments.constraints[1]
     const entity: unknown = await this.dataSource

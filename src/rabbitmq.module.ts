@@ -2,13 +2,20 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq'
 import { Module } from '@nestjs/common'
 import { RabbitService } from './services/rabbitmq.service'
 import { ConfigService } from '@nestjs/config'
-import { RabbitMQConfig } from './config/types'
+import { AllConfigType, RabbitMQConfig } from './config/types'
 
 @Module({
   imports: [
     RabbitMQModule.forRootAsync(RabbitMQModule, {
       inject: [ConfigService],
-      useFactory(configService: ConfigService<RabbitMQConfig>) {
+      useFactory(configService: ConfigService<AllConfigType>) {
+        const isTesting =
+          configService
+            .get('app.nodeEnv', { infer: true })
+            ?.toLocaleLowerCase() === 'test'
+        const rabbitMqUrl = configService.get<string>('rabbitmq.rabbitMqUrl', {
+          infer: true,
+        })
         return {
           exchanges: [
             {
@@ -17,7 +24,8 @@ import { RabbitMQConfig } from './config/types'
               type: 'direct',
             },
           ],
-          uri: configService.get('rabbitMqUrl', { infer: true }) || '',
+          uri: rabbitMqUrl!,
+
           // enableControllerDiscovery: true,
           // channels: {
           //   'channel-product': {
@@ -25,15 +33,15 @@ import { RabbitMQConfig } from './config/types'
           //     default: true,
           //   },
           // },
-          // connectionInitOptions: {
-          //   // wait: false,
-          //   timeout: 5000,
-          // },
-          // connectionManagerOptions: {
-          //   connectionOptions: {
-          //     timeout: 10000,
-          //   },
-          // },
+          connectionInitOptions: {
+            wait: true,
+            timeout: 5000,
+          },
+          connectionManagerOptions: {
+            connectionOptions: {
+              timeout: 10000,
+            },
+          },
         }
       },
     }),

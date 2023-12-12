@@ -1,18 +1,19 @@
 import { ConflictException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import mongoose, { Model, ObjectId } from 'mongoose'
-import { Product, ProductDocument } from '../entities/product.entity'
+import { Observable, from, throwError } from 'rxjs'
+import { catchError, map } from 'rxjs/operators'
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
-import { ProductRepositoryInterface } from '../types/repository'
-import { Observable, throwError, from, timer } from 'rxjs'
-import { catchError, map, mergeMap } from 'rxjs/operators'
-import { FindProductDto } from '../dto/find-product.dto'
-import { UpdatedProductDto, UpdateProductDto } from '../dto/update-product.dto'
+import { FoundProductDto } from '../dto/find-product.dto'
+import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
+import { Product, ProductDocument } from '../entities/product.entity'
 import {
-  KBaseException,
-  FROM,
   ERRORS,
-} from 'src/filters/exceptions/base-exception'
+  FROM,
+  KBaseException,
+} from '../filters/exceptions/base-exception'
+import { ProductRepositoryInterface } from '../types/repository'
+import { plainToInstance } from 'class-transformer'
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
@@ -21,7 +22,7 @@ export class ProductRepository implements ProductRepositoryInterface {
     private readonly productModel: Model<ProductDocument>,
   ) {}
 
-  find(id: string): Observable<FindProductDto | null> {
+  find(id: string): Observable<FoundProductDto | null> {
     return from(
       this.productModel
         .findById(id)
@@ -30,7 +31,14 @@ export class ProductRepository implements ProductRepositoryInterface {
         })
         .exec(),
     ).pipe(
-      map((doc) => (doc && this.mapProductToDto(doc)) || null),
+      map(
+        (doc) =>
+          doc &&
+          plainToInstance(
+            FoundProductDto,
+            doc.toJSON({ flattenObjectIds: true }),
+          ),
+      ),
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
@@ -38,21 +46,27 @@ export class ProductRepository implements ProductRepositoryInterface {
               FROM.repo,
               ERRORS.unexpected,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              err.path,
+              {
+                message: err.message,
+                path: err.path,
+              },
             )
           }
           throw new KBaseException(
             FROM.repo,
             ERRORS.unexpected,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }),
       ),
     )
   }
 
-  findAllByCategory(category: string): Observable<FindProductDto[]> {
+  findAllByCategory(category: string): Observable<FoundProductDto[]> {
     return from(
       this.productModel
         .find()
@@ -64,14 +78,14 @@ export class ProductRepository implements ProductRepositoryInterface {
         })
         .exec(),
     ).pipe(
-      map((docs) =>
-        docs
-          .filter((doc) => Boolean(doc.category))
-          .map((doc) => {
-            const result = this.mapProductToDto(doc)
-            return result
-          }),
-      ),
+      map((docs) => {
+        return plainToInstance(
+          FoundProductDto,
+          docs
+            .map((doc) => doc.toJSON({ flattenObjectIds: true }))
+            .filter((doc) => Boolean(doc.category)),
+        )
+      }),
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
@@ -79,24 +93,29 @@ export class ProductRepository implements ProductRepositoryInterface {
               FROM.repo,
               ERRORS.unexpected,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              err.path,
+              {
+                message: err.message,
+                path: err.path,
+              },
             )
           }
           throw new KBaseException(
             FROM.repo,
             ERRORS.unexpected,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }),
       ),
     )
   }
-
   findAllByCategoryAndName(
     search: string,
     category?: string,
-  ): Observable<FindProductDto[]> {
+  ): Observable<FoundProductDto[]> {
     return from(
       this.productModel
         .find({
@@ -119,9 +138,12 @@ export class ProductRepository implements ProductRepositoryInterface {
         .exec(),
     ).pipe(
       map((docs) =>
-        docs
-          .filter((doc) => Boolean(doc.category))
-          .map((doc) => this.mapProductToDto(doc)),
+        plainToInstance(
+          FoundProductDto,
+          docs
+            .filter((doc) => Boolean(doc.category))
+            .map((doc) => doc.toJSON({ flattenObjectIds: true })),
+        ),
       ),
       catchError((err) =>
         throwError(() => {
@@ -130,21 +152,27 @@ export class ProductRepository implements ProductRepositoryInterface {
               FROM.repo,
               ERRORS.unexpected,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              err.path,
+              {
+                message: err.message,
+                path: err.path,
+              },
             )
           }
           throw new KBaseException(
             FROM.repo,
             ERRORS.unexpected,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }),
       ),
     )
   }
 
-  findAllByName(search: string): Observable<FindProductDto[]> {
+  findAllByName(search: string): Observable<FoundProductDto[]> {
     return from(
       this.productModel
         .find({
@@ -160,7 +188,14 @@ export class ProductRepository implements ProductRepositoryInterface {
         })
         .exec(),
     ).pipe(
-      map((docs) => docs.map((doc) => this.mapProductToDto(doc))),
+      map((docs) =>
+        plainToInstance(
+          FoundProductDto,
+          docs
+            .filter((doc) => Boolean(doc.category))
+            .map((doc) => doc.toJSON({ flattenObjectIds: true })),
+        ),
+      ),
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
@@ -168,25 +203,38 @@ export class ProductRepository implements ProductRepositoryInterface {
               FROM.repo,
               ERRORS.unexpected,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              err.path,
+              {
+                message: err.message,
+                path: err.path,
+              },
             )
           }
           throw new KBaseException(
             FROM.repo,
             ERRORS.unexpected,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }),
       ),
     )
   }
 
-  findAll(): Observable<FindProductDto[]> {
+  findAll(): Observable<FoundProductDto[]> {
     return from(
       this.productModel.find().populate({ path: 'category' }).exec(),
     ).pipe(
-      map((docs) => docs.map((doc) => this.mapProductToDto(doc))),
+      map((docs) => {
+        return plainToInstance(
+          FoundProductDto,
+          docs
+            .map((doc) => doc.toJSON({ flattenObjectIds: true }))
+            .filter((doc) => Boolean(doc.category)),
+        )
+      }),
       catchError((err) =>
         throwError(() => {
           if (err instanceof mongoose.Error.CastError) {
@@ -194,14 +242,20 @@ export class ProductRepository implements ProductRepositoryInterface {
               FROM.repo,
               ERRORS.unexpected,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              err.path,
+              {
+                message: err.message,
+                path: err.path,
+              },
             )
           }
           throw new KBaseException(
             FROM.repo,
             ERRORS.unexpected,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }),
       ),
@@ -209,27 +263,11 @@ export class ProductRepository implements ProductRepositoryInterface {
   }
 
   create(product: CreateProductDto): Observable<CreatedProductDto[] | null> {
-    console.log(product)
     return from(this.productModel.create([product])).pipe(
-      mergeMap((_docs) => {
-        const observable = new Observable<any>((subscriber) => {
-          _docs.forEach(async (doc) => {
-            const result = await doc.populate('category')
-            subscriber.next(result.toJSON({ flattenObjectIds: true }))
-          })
-        })
-        const arr = [] as any[]
-        const subscript = observable.subscribe({
-          next: (value) => {
-            arr.push(this.mapProductToDto(value) as CreatedProductDto)
-          },
-        })
-
-        return timer(50).pipe(
-          map(() => {
-            subscript.unsubscribe()
-            return arr
-          }),
+      map((_docs) => {
+        return plainToInstance(
+          CreatedProductDto,
+          _docs.map((doc) => doc.toJSON({ flattenObjectIds: true })),
         )
       }),
       catchError((err) => {
@@ -238,21 +276,30 @@ export class ProductRepository implements ProductRepositoryInterface {
             FROM.repo,
             ERRORS.conflict,
             HttpStatus.CONFLICT,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         if (err instanceof mongoose.Error.CastError) {
           throw new KBaseException(
             FROM.repo,
             ERRORS.cast,
             HttpStatus.UNPROCESSABLE_ENTITY,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }
         throw new KBaseException(
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
@@ -291,11 +338,11 @@ export class ProductRepository implements ProductRepositoryInterface {
     ).pipe(
       map(
         (doc) =>
-          (doc &&
-            (this.mapProductToDto(
-              doc.toJSON({ flattenObjectIds: true }),
-            ) as UpdatedProductDto)) ||
-          null,
+          doc &&
+          plainToInstance(
+            UpdatedProductDto,
+            doc.toJSON({ flattenObjectIds: true }),
+          ),
       ),
       catchError((err) => {
         if (err?.code === 11000)
@@ -308,24 +355,41 @@ export class ProductRepository implements ProductRepositoryInterface {
             FROM.repo,
             ERRORS.cast,
             HttpStatus.UNPROCESSABLE_ENTITY,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }
         throw new KBaseException(
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
   }
 
-  delete(id: string): Observable<{ _id: string; name: string } | null> {
-    return from(this.productModel.findByIdAndDelete(id).exec()).pipe(
+  delete(
+    id: string,
+  ): Observable<Pick<UpdatedProductDto, '_id' | 'name'> | null> {
+    return from(
+      this.productModel
+        .findByIdAndDelete(id, { includeResultMetadata: true })
+        .exec(),
+    ).pipe(
       map(
         (doc) =>
-          (doc && (doc.toObject() as { _id: string; name: string })) || null,
+          (doc.ok &&
+            plainToInstance(
+              UpdatedProductDto,
+              doc.value?.toJSON({ flattenObjectIds: true }),
+            )) ||
+          null,
       ),
       catchError((err) =>
         throwError(() => {
@@ -334,30 +398,23 @@ export class ProductRepository implements ProductRepositoryInterface {
               FROM.repo,
               ERRORS.cast,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              err.path,
+              {
+                message: err.message,
+                path: err.path,
+              },
             )
           }
           throw new KBaseException(
             FROM.repo,
             ERRORS.unexpected,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         }),
       ),
     )
-  }
-  private mapProductToDto<T extends FindProductDto | CreatedProductDto>(
-    product: Partial<Product>,
-  ): FindProductDto {
-    return {
-      id: product?._id?.toString(),
-      name: product?.name,
-      description: product?.description,
-      category: product?.category?.name,
-      price: product?.price,
-      favouritedBy: product?.favouritedBy,
-      // Add other mapped properties
-    } as T
   }
 }

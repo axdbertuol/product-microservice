@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common'
-import { CategoryService } from './category.service'
-import { RabbitService } from './rabbitmq.service'
-import { ProductService } from './product.service'
 import { RabbitRPC, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq'
-import { ConsumeMessage } from 'amqplib'
-import { Message } from 'kommshop-types'
+import { Injectable } from '@nestjs/common'
+import type { ConsumeMessage } from 'amqplib'
+import { CategoryService } from './category.service'
+import { ProductService } from './product.service'
+import { RabbitService } from './rabbitmq.service'
 
 @Injectable()
 export class ProductMessagingService {
@@ -21,10 +20,7 @@ export class ProductMessagingService {
       autoDelete: true,
     },
   })
-  async interceptProductFetch(
-    msg: Message.ProductContent,
-    amqpMsg: ConsumeMessage,
-  ) {
+  async interceptProductFetch(msg: any, amqpMsg: ConsumeMessage) {
     this.productService.findAll(msg?.category ?? undefined).subscribe({
       next: async (result) => {
         const newMessage = {

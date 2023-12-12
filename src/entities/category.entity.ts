@@ -4,11 +4,9 @@ import { HydratedDocument, ObjectId, Document } from 'mongoose'
 export type CategoryDocument = HydratedDocument<Category>
 
 @Schema()
-export class Category extends Document {
-  @Prop({ required: true, index: true })
-  name: string
-
-  _id: ObjectId
+export class Category {
+  @Prop({ required: true })
+  name!: string
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category)

@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { Model, isObjectIdOrHexString } from 'mongoose'
 import { CRUD } from '../types/base.d'
 import { Category, CategoryDocument } from '../entities/category.entity'
 import {
@@ -9,13 +9,14 @@ import {
 } from '../dto/create-category.dto'
 import { Observable, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
-import { FindCategoryDto } from '../dto/find-category.dto'
-import { UpdatedCategoryDto } from 'src/dto/update-category.dto'
+import { FoundCategoryDto } from '../dto/find-category.dto'
+import { UpdatedCategoryDto } from '../dto/update-category.dto'
 import {
   ERRORS,
   FROM,
   KBaseException,
-} from 'src/filters/exceptions/base-exception'
+} from '../filters/exceptions/base-exception'
+import { plainToInstance } from 'class-transformer'
 
 @Injectable()
 export class CategoryRepository implements CRUD {
@@ -24,35 +25,49 @@ export class CategoryRepository implements CRUD {
     private readonly categoryModel: Model<CategoryDocument>,
   ) {}
 
-  find(id: string): Observable<FindCategoryDto | null> {
-    return from(this.categoryModel.findById(id).exec()).pipe(
+  find(value: string): Observable<FoundCategoryDto | null> {
+    const query = isObjectIdOrHexString(value)
+      ? { _id: value }
+      : { name: value }
+    return from(this.categoryModel.findOne({ ...query }).exec()).pipe(
       map(
         (doc) =>
-          (doc &&
-            (doc.toObject({ flattenObjectIds: true }) as FindCategoryDto)) ||
-          null,
+          doc &&
+          plainToInstance(
+            FoundCategoryDto,
+            doc.toJSON({ flattenObjectIds: true }),
+          ),
       ),
+
       catchError((err) => {
         throw new KBaseException(
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
   }
 
-  findByName<T extends FindCategoryDto>(categoryName: string): Observable<T[]> {
+  findByName(categoryName: string | null): Observable<FoundCategoryDto[]> {
     return from(
       this.categoryModel
         .find({ name: { $regex: categoryName, $options: 'i' } })
         .exec(),
     ).pipe(
       map((docs) =>
-        docs.map(
-          (doc) =>
-            (doc && (doc.toObject({ flattenObjectIds: true }) as T)) || null,
+        plainToInstance<FoundCategoryDto, FoundCategoryDto | null>(
+          FoundCategoryDto,
+          docs.map(
+            (doc) =>
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              (doc && doc.toJSON({ flattenObjectIds: true })) || null,
+          ),
         ),
       ),
       catchError((err) => {
@@ -60,17 +75,26 @@ export class CategoryRepository implements CRUD {
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
   }
 
-  findAll(): Observable<FindCategoryDto[]> {
+  findAll(): Observable<FoundCategoryDto[]> {
     return from(this.categoryModel.find().exec()).pipe(
       map((docs) =>
-        docs.map(
-          (doc) => doc.toObject({ flattenObjectIds: true }) as FindCategoryDto,
+        plainToInstance<FoundCategoryDto, FoundCategoryDto | null>(
+          FoundCategoryDto,
+          docs.map(
+            (doc) =>
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              (doc && doc.toJSON({ flattenObjectIds: true })) || null,
+          ),
         ),
       ),
       catchError((err) => {
@@ -78,7 +102,10 @@ export class CategoryRepository implements CRUD {
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
@@ -86,14 +113,13 @@ export class CategoryRepository implements CRUD {
 
   create(category: CreateCategoryDto): Observable<CreatedCategoryDto[]> {
     return from(this.categoryModel.create([category])).pipe(
-      map(
-        (doc) =>
-          (doc &&
-            doc.map(
-              (d) =>
-                d.toObject({ flattenObjectIds: true }) as CreatedCategoryDto,
-            )) ||
-          null,
+      map((docs) =>
+        plainToInstance<CreatedCategoryDto, CreatedCategoryDto | null>(
+          CreatedCategoryDto,
+          docs.map(
+            (doc) => (doc && doc.toJSON({ flattenObjectIds: true })) || null,
+          ),
+        ),
       ),
       catchError((err) => {
         if (err?.code === 11000)
@@ -101,12 +127,19 @@ export class CategoryRepository implements CRUD {
             FROM.repo,
             ERRORS.conflict,
             HttpStatus.CONFLICT,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         throw new KBaseException(
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
@@ -119,47 +152,61 @@ export class CategoryRepository implements CRUD {
     return from(
       this.categoryModel.findByIdAndUpdate(id, category, { new: true }).exec(),
     ).pipe(
-      map(
-        (doc) =>
+      map((doc) => {
+        return (
           (doc &&
-            (doc.toObject({ flattenObjectIds: true }) as UpdatedCategoryDto)) ||
-          null,
-      ),
+            plainToInstance(
+              UpdatedCategoryDto,
+              doc.toJSON({ flattenObjectIds: true }),
+            )) ||
+          null
+        )
+      }),
       catchError((err) => {
         if (err?.code === 11000)
           throw new KBaseException(
             FROM.repo,
             ERRORS.conflict,
             HttpStatus.CONFLICT,
-            err.path,
+            {
+              message: err.message,
+              path: err.path,
+            },
           )
         throw new KBaseException(
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )
   }
 
-  delete(id: string): Observable<{ _id: string; name: string } | null> {
-    return from(this.categoryModel.findByIdAndDelete(id).exec()).pipe(
-      map(
-        (doc) =>
-          (doc &&
-            (doc.toObject({ flattenObjectIds: true }) as {
-              _id: string
-              name: string
-            })) ||
-          null,
-      ),
+  delete(id: string): Observable<UpdatedCategoryDto | null> {
+    return from(
+      this.categoryModel
+        .findByIdAndDelete(id, { includeResultMetadata: true })
+        .exec(),
+    ).pipe(
+      map((doc) => {
+        if (doc?.ok) {
+          return plainToInstance(UpdatedCategoryDto, doc.value?.toJSON())
+        }
+        return null
+      }),
       catchError((err) => {
         throw new KBaseException(
           FROM.repo,
           ERRORS.unexpected,
           HttpStatus.INTERNAL_SERVER_ERROR,
-          err.path,
+          {
+            message: err.message,
+            path: err.path,
+          },
         )
       }),
     )

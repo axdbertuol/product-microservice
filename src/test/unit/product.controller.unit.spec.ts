@@ -1,19 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { of } from 'rxjs'
 import { ProductController } from '../../controllers/product.controller'
-import { ProductService } from '../../services/product.service'
 import {
   CreateProductDto,
   CreatedProductDto,
 } from '../../dto/create-product.dto'
-import { Category } from '../../entities/category.entity'
-import { ProductRepository } from '../../repository/product.repository'
-import { FindProductDto } from '../../dto/find-product.dto'
-import { of } from 'rxjs'
+import { FindProductDto, FoundProductDto } from '../../dto/find-product.dto'
 import {
   UpdateProductDto,
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
+import { ProductRepository } from '../../repository/product.repository'
 import { CategoryService } from '../../services/category.service'
+import { ProductService } from '../../services/product.service'
 
 jest.mock('../../repository/product.repository')
 jest.mock('../../repository/category.repository')
@@ -34,7 +33,10 @@ describe('ProductController', () => {
 
   describe('findAll', () => {
     it('should return an array of products', async () => {
-      const expectedResult: FindProductDto[] = [{ name: 'x' }, { name: 'y' }]
+      const expectedResult: FoundProductDto[] = [
+        { name: 'x', _id: 'x' },
+        { name: 'y', _id: 'y' },
+      ]
       const findAllSpy = jest
         .spyOn(productService, 'findAll')
         .mockReturnValue(of(expectedResult))
@@ -50,7 +52,7 @@ describe('ProductController', () => {
 
   describe('find', () => {
     it('should return a product by id', async () => {
-      const expectedResult: FindProductDto = { name: 'x' }
+      const expectedResult: FoundProductDto = { name: 'x', _id: 'x' }
       const findSpy = jest
         .spyOn(productService, 'find')
         .mockReturnValue(of(expectedResult))
@@ -67,7 +69,10 @@ describe('ProductController', () => {
   describe('findAll with category', () => {
     it('should return an array of products by category', async () => {
       const categoryName = 'category'
-      const expectedResult: FindProductDto[] = [{ name: 'x' }, { name: 'y' }]
+      const expectedResult: FoundProductDto[] = [
+        { name: 'x', _id: 'x' },
+        { name: 'y', _id: 'y' },
+      ]
       const findAllByCategorySpy = jest
         .spyOn(productService, 'findAllByCategory')
         .mockReturnValue(of(expectedResult))
@@ -83,13 +88,12 @@ describe('ProductController', () => {
 
   describe('create', () => {
     it('should create a product', async () => {
-      const category = { name: 'ble' } as Category
       const expectedResult: CreatedProductDto = {
         _id: 'whatever',
         name: 'a',
         description: 'v',
         price: 123,
-        category,
+        category: 'ble',
       }
       const createProductDto: CreateProductDto = {
         name: 'a',
@@ -112,16 +116,19 @@ describe('ProductController', () => {
 
   describe('update', () => {
     it('should update a product', async () => {
-      const category = { name: 'ble' } as Category
       const id = 'whatever'
       const expectedResult: UpdatedProductDto = {
+        _id: id,
         name: 'a',
+        category: 'ble',
+        description: 'v',
+        price: 123,
       }
       const product: UpdateProductDto = {
         name: 'a',
         description: 'v',
         price: 123,
-        category,
+        category: 'ble',
       }
       const updateSpy = jest
         .spyOn(productService, 'update')

@@ -1,26 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose'
-import { Category } from './category.entity'
+import mongoose, { HydratedDocument, ObjectId, Document } from 'mongoose'
+import { Category, CategoryDocument } from './category.entity'
 
 export type ProductDocument = HydratedDocument<Product>
 
 @Schema()
 export class Product {
   @Prop({ required: true, index: true })
-  name: string
+  name!: string
 
   @Prop({ required: false, default: '', index: true })
-  description: string
+  description!: string
 
   @Prop({ required: true })
-  price: number
+  price!: number
 
   @Prop({
     required: true,
+
     type: mongoose.Schema.Types.ObjectId,
+    autopopulate: true,
     ref: 'Category',
   })
-  category: Category
+  category!: Category
   @Prop({
     validate: {
       validator: (newValues: ObjectId[]) => {
@@ -34,7 +36,7 @@ export class Product {
     required: false,
   })
   favouritedBy?: ObjectId[]
-  _id: ObjectId
+  // _id: ObjectId
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product).alias(

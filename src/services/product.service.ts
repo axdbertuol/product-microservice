@@ -1,21 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
-import { ObjectId } from 'mongoose'
 import { unionBy } from 'lodash'
+import { ObjectId } from 'mongoose'
 import { Observable, forkJoin, throwError } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 
 import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
-import { ProductRepository } from '../repository/product.repository'
+import { FoundCategoryDto } from '../dto/find-category.dto'
+import { FoundProductDto } from '../dto/find-product.dto'
 import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
+import {
+  ERRORS,
+  FROM,
+  KBaseException,
+} from '../filters/exceptions/base-exception'
+import { ProductRepository } from '../repository/product.repository'
 import { ProductServiceInterface } from '../types/service'
 import { CategoryService } from './category.service'
-import { FindProductDto } from '../dto/find-product.dto'
-import { FindCategoryDto } from 'src/dto/find-category.dto'
-import {
-  KBaseException,
-  FROM,
-  ERRORS,
-} from 'src/filters/exceptions/base-exception'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {
@@ -24,30 +24,27 @@ export class ProductService implements ProductServiceInterface {
     private readonly categoryService: CategoryService,
   ) {}
 
-  find(id: string): Observable<FindProductDto | null> {
-    return this.productRepository.find(id).pipe(
-      map((product) => product as FindProductDto),
-      catchError((err) => throwError(() => err)),
-    )
+  find(value: string): Observable<FoundProductDto | null> {
+    return this.productRepository.find(value)
   }
 
-  findAllByCategory(category?: string): Observable<FindProductDto[]> {
+  findAllByCategory(category?: string): Observable<FoundProductDto[]> {
     if (!category || category.length === 0) {
       return throwError(() => {
         return new KBaseException(
           FROM.service,
-          ERRORS.invalidCat,
+          ERRORS.invalidOrUndefinedData,
           HttpStatus.UNPROCESSABLE_ENTITY,
-          'category',
+          {
+            path: 'category',
+          },
         )
       })
     }
-    return this.productRepository
-      .findAllByCategory(category)
-      .pipe(catchError((err) => throwError(() => err)))
+    return this.productRepository.findAllByCategory(category)
   }
 
-  findAll(search?: string, category?: string): Observable<FindProductDto[]> {
+  findAll(search?: string, category?: string): Observable<FoundProductDto[]> {
     if (category) {
       if (search) {
         return this.findAllByCategoryAndName(search, category)
@@ -76,7 +73,7 @@ export class ProductService implements ProductServiceInterface {
   findAllByCategoryAndName(
     search: string,
     category: string,
-  ): Observable<FindProductDto[]> {
+  ): Observable<FoundProductDto[]> {
     return this.productRepository
       .findAllByCategoryAndName(search, category)
       .pipe(catchError((err) => throwError(() => err)))
@@ -96,13 +93,15 @@ export class ProductService implements ProductServiceInterface {
 
   create(product: CreateProductDto): Observable<CreatedProductDto[] | null> {
     return this.categoryService.findByName(product.category).pipe(
-      mergeMap((categories) => {
+      mergeMap((categories: FoundCategoryDto[] | null) => {
         if (!categories || categories?.length == 0) {
           throw new KBaseException(
             FROM.service,
-            ERRORS.invalidCat,
+            ERRORS.invalidOrUndefinedData,
             HttpStatus.UNPROCESSABLE_ENTITY,
-            'category',
+            {
+              path: 'category',
+            },
           )
         }
         const id = categories?.at(0)?._id
@@ -116,9 +115,11 @@ export class ProductService implements ProductServiceInterface {
         }
         throw new KBaseException(
           FROM.service,
-          ERRORS.invalidCat,
+          ERRORS.invalidOrUndefinedData,
           HttpStatus.BAD_REQUEST,
-          'category',
+          {
+            path: 'category',
+          },
         )
       }),
       catchError((err) => throwError(() => err)),
@@ -127,25 +128,26 @@ export class ProductService implements ProductServiceInterface {
 
   update(
     id: string,
-    product: any,
+    product: UpdateProductDto,
     { newFavourite }: { newFavourite?: ObjectId } = {},
   ): Observable<UpdatedProductDto | null> {
-    console.log(product)
     if (product?.category) {
       return this.categoryService.findByName(product.category).pipe(
-        mergeMap((foundData: FindCategoryDto[]) => {
+        mergeMap((foundData: FoundCategoryDto[] | null) => {
           if (!foundData || foundData.length === 0)
             throw new KBaseException(
               FROM.service,
-              ERRORS.invalidCat,
+              ERRORS.invalidOrUndefinedData,
               HttpStatus.UNPROCESSABLE_ENTITY,
-              'category',
+              {
+                path: 'category',
+              },
             )
           return this.productRepository.update(
             id,
             {
               ...product,
-              category: foundData[0]._id.toString(),
+              category: foundData?.[0]._id,
             },
             { newFavourite },
           )

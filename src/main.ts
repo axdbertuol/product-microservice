@@ -41,7 +41,10 @@ async function bootstrap() {
     .build()
   const document = SwaggerModule.createDocument(app, options)
   SwaggerModule.setup('docs', app, document)
-  await app.listen(3333)
-  console.log('Server listening on 3333')
+  await app.listen(configService.get('app.port', { infer: true }) || 3333)
+  console.log(
+    'Server listening on ' + configService.get('app.port', { infer: true }) ||
+      3333,
+  )
 }
 bootstrap()

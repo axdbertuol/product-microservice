@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { of, throwError } from 'rxjs'
 import { CategoryController } from '../../controllers/category.controller'
-import { CategoryService } from '../../services/category.service'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,
 } from '../../dto/create-category.dto'
+import { FindCategoryDto, FoundCategoryDto } from '../../dto/find-category.dto'
 import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
 } from '../../dto/update-category.dto'
-import { FindCategoryDto } from '../../dto/find-category.dto'
-import { of, throwError } from 'rxjs'
 import { CategoryRepository } from '../../repository/category.repository'
+import { CategoryService } from '../../services/category.service'
 
 jest.mock('../../repository/category.repository')
 jest.mock('../../services/category.service')
@@ -32,7 +32,7 @@ describe('CategoryController', () => {
   describe('find', () => {
     it('should return the found category', (done) => {
       const id = '123'
-      const categoryDto: FindCategoryDto = {
+      const categoryDto: FoundCategoryDto = {
         name: 'Category A',
         _id: id,
       }
@@ -165,8 +165,8 @@ describe('CategoryController', () => {
   describe('findAll', () => {
     it('should return an array of categories', (done) => {
       const categoryDto: FindCategoryDto[] = [
-        { name: 'Category A', _id: '123' },
-        { name: 'Category B', _id: '456' },
+        { name: 'Category A', id: '123' },
+        { name: 'Category B', id: '456' },
       ]
       jest.spyOn(categoryService, 'findAll').mockReturnValue(of(categoryDto))
 

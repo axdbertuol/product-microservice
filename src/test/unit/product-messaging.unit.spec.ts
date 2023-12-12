@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { ConsumeMessage } from 'amqplib'
+import { of } from 'rxjs'
+import { CategoryService } from '../../services/category.service'
 import { ProductMessagingService } from '../../services/product-messaging.service'
 import { ProductService } from '../../services/product.service'
 import { RabbitService } from '../../services/rabbitmq.service'
-import { Message } from 'kommshop-types'
-import { of } from 'rxjs'
-import { ConsumeMessage } from 'amqplib'
-import { CategoryService } from '../../services/category.service'
+import { FoundProductDto } from '@/dto/find-product.dto'
 
 jest.mock('../../services/category.service')
 describe('ProductMessagingService', () => {
@@ -50,7 +50,7 @@ describe('ProductMessagingService', () => {
 
   it('should intercept and publish product fetch response', async () => {
     // Mock dependencies' behavior
-    const findAllResult = [{ id: 1, name: 'Product 1' }]
+    const findAllResult = [{ _id: '1', name: 'Product 1' } as FoundProductDto]
     const serializedResult = Buffer.from(JSON.stringify(findAllResult))
     jest.spyOn(productService, 'findAll').mockReturnValue(of(findAllResult))
     jest
@@ -59,7 +59,7 @@ describe('ProductMessagingService', () => {
 
     // Mock the AMQP message and call the interceptProductFetch method
     const amqpMsg = { properties: {}, fields: {}, content: 'Message Content' }
-    const msg: Message.ProductContent = {
+    const msg = {
       category: 'Category',
       data: undefined,
     }

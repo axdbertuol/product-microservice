@@ -1,0 +1,10 @@
+version: '3.8'
+
+include:
+  - docker-compose.build.yaml
+services:
+  api:
+    build:
+      context: .
+      target: development
+      dockerfile: e2e.Dockerfile

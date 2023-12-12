@@ -1,28 +1,28 @@
 import { registerAs } from '@nestjs/config'
 import { IsOptional, IsString, IsUrl, Matches } from 'class-validator'
-import validateConfig from 'src/utils/validate-config'
+import validateConfig from '../utils/validate-config'
 import { DatabaseConfig } from './types'
 
 class EnvironmentVariablesValidator {
   @IsOptional()
   @IsString()
-  MONGO_USER: string
+  MONGO_USER!: string
 
   @IsOptional()
   @IsString()
-  MONGO_PWD: string
+  MONGO_PWD!: string
 
   @Matches(/^mongo.*/i)
   @IsOptional()
-  DATABASE_URL: string
+  DATABASE_URL!: string
 
   @Matches(/^mongo.*/i)
   @IsOptional()
-  DATABASE_TEST_URL: string
+  DATABASE_TEST_URL!: string
 
   @IsString()
   @IsOptional()
-  DATABASE_TEST_NAME: string
+  DATABASE_TEST_NAME!: string
 }
 
 export default registerAs<DatabaseConfig>('database', () => {

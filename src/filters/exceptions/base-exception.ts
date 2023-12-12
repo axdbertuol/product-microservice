@@ -4,7 +4,7 @@ export enum ERRORS {
   cast = 'castError',
   unexpected = 'unexpectedError',
   conflict = 'conflictError',
-  invalidCat = 'invalidCategory',
+  invalidOrUndefinedData = 'invalidCategory',
 }
 
 export enum FROM {
@@ -12,13 +12,23 @@ export enum FROM {
   service = 'service',
 }
 export class KBaseException extends HttpException {
-  constructor(from: FROM, errorEnum: ERRORS, status: number, path?: string) {
+  constructor(
+    from: FROM,
+    errorEnum: ERRORS,
+    status: number,
+    options:
+      | {
+          message?: string
+          path?: string
+        }
+      | undefined = undefined,
+  ) {
     let json = ''
     try {
       const response = {
         origin: from,
         type: errorEnum,
-        path: path ?? undefined,
+        path: options?.path ?? undefined,
       }
       json = JSON.stringify(response)
     } catch (err) {
@@ -28,13 +38,14 @@ export class KBaseException extends HttpException {
     super(
       {
         cause: { error: json },
+        ...(options?.message ? { message: options.message } : null),
       },
       status,
     )
   }
 
-  cause: { error: string } | { errors?: Record<string, string[]> }
-  name: string
-  message: string
+  declare cause: { error: string } | { errors?: Record<string, string[]> }
+  name!: string
+  message!: string
   stack?: string | undefined
 }

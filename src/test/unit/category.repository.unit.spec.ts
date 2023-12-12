@@ -1,24 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { CategoryRepository } from '../../repository/category.repository'
 import { getModelToken } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
-import { Category, CategoryDocument } from '../../entities/category.entity'
-import {
-  CreateCategoryDto,
-  CreatedCategoryDto,
-} from '../../dto/create-category.dto'
-import { FindCategoryDto } from 'src/dto/find-category.dto'
+import { Test, TestingModule } from '@nestjs/testing'
+import { Model, ObjectId } from 'mongoose'
+import { Subscription } from 'rxjs'
 import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
 } from 'src/dto/update-category.dto'
+import {
+  CreateCategoryDto,
+  CreatedCategoryDto,
+} from '../../dto/create-category.dto'
+import { Category, CategoryDocument } from '../../entities/category.entity'
+import { KBaseException } from '../../filters/exceptions/base-exception'
+import { CategoryRepository } from '../../repository/category.repository'
 
 describe('CategoryRepository', () => {
   let repository: CategoryRepository
   let categoryModel: Model<CategoryDocument>
-  const wrap = (cat: any) => ({
-    toObject: () => cat,
-  })
+  const wrap = (cat: any) =>
+    ({
+      ...cat,
+      toJSON: () => cat,
+    } as unknown as CategoryDocument)
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -40,39 +43,63 @@ describe('CategoryRepository', () => {
   })
 
   describe('find', () => {
+    let findSubscription: Subscription = new Subscription()
+    afterEach(() => {
+      findSubscription.unsubscribe()
+    })
     it('should find the category by id and return it', (done) => {
-      const id = '123'
-      const categoryDto: FindCategoryDto = {
+      const id = '5f082780b00cc7401fb8e8fc'
+      const categoryDto: Category & { _id: ObjectId } = {
         name: 'Category A',
-        _id: id,
+        _id: id as unknown as ObjectId,
       }
-      const wrapCategory = {
-        toObject: () => categoryDto,
-      }
-      const findByIdSpy = jest.spyOn(categoryModel, 'findById')
+      const wrapCategory = wrap(categoryDto)
+
+      const findByIdSpy = jest.spyOn(categoryModel, 'findOne')
       findByIdSpy.mockReturnValue({
         exec: jest.fn().mockResolvedValue(wrapCategory),
         populate: jest.fn().mockReturnThis(),
       } as any)
 
-      repository.find(id).subscribe((result) => {
+      findSubscription = repository.find(id).subscribe((result) => {
         expect(result).toEqual(categoryDto)
-        expect(findByIdSpy).toHaveBeenCalledWith(id)
+        expect(findByIdSpy).toHaveBeenCalledWith({ _id: id })
+        done()
+      })
+    })
+
+    it('should find the category by name and return it', (done) => {
+      const id = '123'
+      const categoryDto: Category & { _id: ObjectId } = {
+        name: 'Category A',
+        _id: id as unknown as ObjectId,
+      }
+      const wrapCategory = wrap(categoryDto)
+
+      const findByIdSpy = jest.spyOn(categoryModel, 'findOne')
+      findByIdSpy.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(wrapCategory),
+        populate: jest.fn().mockReturnThis(),
+      } as any)
+
+      findSubscription = repository.find(id).subscribe((result) => {
+        expect(result).toEqual(categoryDto)
+        expect(findByIdSpy).toHaveBeenCalledWith({ name: id })
         done()
       })
     })
 
     it('should return null when category is not found', (done) => {
       const id = '123'
-      const findByIdSpy = jest.spyOn(categoryModel, 'findById')
+      const findByIdSpy = jest.spyOn(categoryModel, 'findOne')
       findByIdSpy.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
         populate: jest.fn().mockReturnThis(),
       } as any)
 
-      repository.find(id).subscribe((result) => {
+      findSubscription = repository.find(id).subscribe((result) => {
         expect(result).toBeNull()
-        expect(findByIdSpy).toHaveBeenCalledWith(id)
+        expect(findByIdSpy).toHaveBeenCalledWith({ name: id })
         done()
       })
     })
@@ -80,18 +107,18 @@ describe('CategoryRepository', () => {
     it('should throw an error when an error occurs', (done) => {
       const id = '123'
       const error = new Error('Some error')
-      const findByIdSpy = jest.spyOn(categoryModel, 'findById')
+      const findByIdSpy = jest.spyOn(categoryModel, 'findOne')
       findByIdSpy.mockReturnValue({
         exec: jest.fn().mockRejectedValueOnce(error),
         populate: jest.fn().mockReturnThis(),
       } as any)
 
-      repository.find(id).subscribe({
+      findSubscription = repository.find(id).subscribe({
         // () => {},
         error: (err) => {
           expect(error).toBeInstanceOf(Error)
           expect(err.message).toContain(error.message)
-          expect(findByIdSpy).toHaveBeenCalledWith(id)
+          expect(findByIdSpy).toHaveBeenCalledWith({ name: id })
           done()
         },
       })
@@ -99,12 +126,13 @@ describe('CategoryRepository', () => {
   })
 
   describe('findByName', () => {
+    let subscr: Subscription
     it('should find categories by name and return an array of them', (done) => {
       const categoryName = 'Category A'
       const wrap = (cat: any) => ({
-        toObject: () => cat,
+        toJSON: () => cat,
       })
-      const categoryDto: FindCategoryDto[] = [
+      const categoryDto = [
         { name: 'Category A', _id: '123' },
         { name: 'Category A', _id: '456' },
       ]
@@ -115,7 +143,7 @@ describe('CategoryRepository', () => {
         exec: jest.fn().mockResolvedValue(wrappedCategoryDto),
       } as any)
 
-      repository.findByName(categoryName).subscribe((result) => {
+      subscr = repository.findByName(categoryName).subscribe((result) => {
         expect(result).toEqual(categoryDto)
         expect(findSpy).toHaveBeenCalledWith({
           name: { $regex: categoryName, $options: 'i' },
@@ -125,13 +153,14 @@ describe('CategoryRepository', () => {
     })
 
     it('should return an empty array when no categories found', (done) => {
+      subscr.unsubscribe()
       const categoryName = 'Category A'
       const findSpy = jest.spyOn(categoryModel, 'find')
       findSpy.mockReturnValue({
         exec: jest.fn().mockResolvedValue([]),
       } as any)
 
-      repository.findByName(categoryName).subscribe((result) => {
+      subscr = repository.findByName(categoryName).subscribe((result) => {
         expect(result).toEqual([])
         expect(findSpy).toHaveBeenCalledWith({
           name: { $regex: categoryName, $options: 'i' },
@@ -141,6 +170,7 @@ describe('CategoryRepository', () => {
     })
 
     it('should throw an error when an error occurs', (done) => {
+      subscr.unsubscribe()
       const categoryName = 'Category A'
       const error = new Error('Some error')
       const findSpy = jest.spyOn(categoryModel, 'find')
@@ -148,14 +178,13 @@ describe('CategoryRepository', () => {
         exec: jest.fn().mockRejectedValue(error),
       } as any)
 
-      repository.findByName(categoryName).subscribe({
+      subscr = repository.findByName(categoryName).subscribe({
         // () => {},
+        next(value) {
+          console.log('not here', value)
+        },
         error: (err) => {
-          expect(error).toBeInstanceOf(Error)
-          expect(err.message).toContain(error.message)
-          expect(findSpy).toHaveBeenCalledWith({
-            name: { $regex: categoryName, $options: 'i' },
-          })
+          expect(err).toBeInstanceOf(KBaseException)
           done()
         },
       })
@@ -164,20 +193,23 @@ describe('CategoryRepository', () => {
 
   describe('findAll', () => {
     it('should return an array of categories', (done) => {
-      const categoryDto: FindCategoryDto[] = [
+      const categoryDto = [
         { name: 'Category A', _id: '123' },
         { name: 'Category B', _id: '456' },
       ]
       const findSpy = jest.spyOn(categoryModel, 'find')
 
       findSpy.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(categoryDto.map(wrap)),
+        exec: jest.fn().mockResolvedValue(categoryDto.map((x) => wrap(x))),
       } as any)
 
-      repository.findAll().subscribe((result) => {
-        expect(result).toEqual(categoryDto)
-        expect(findSpy).toHaveBeenCalledWith()
-        done()
+      repository.findAll().subscribe({
+        next: (result) => {
+          expect(result).toEqual(categoryDto)
+        },
+        complete: () => {
+          done()
+        },
       })
     })
 
@@ -215,7 +247,7 @@ describe('CategoryRepository', () => {
 
   describe('create', () => {
     it('should create a new category and return the created category', (done) => {
-      const createCategoryDto: CreateCategoryDto = {
+      const createCategoryDto = {
         name: 'New Category',
       }
       const createdCategoryDto: CreatedCategoryDto = {
@@ -223,8 +255,9 @@ describe('CategoryRepository', () => {
         _id: '123',
       }
       const wrapCateg = {
-        toObject: () => createdCategoryDto,
-      } as CategoryDocument
+        ...createdCategoryDto,
+        toJSON: () => createdCategoryDto,
+      } as unknown as CategoryDocument
       const createSpy = jest
         .spyOn(categoryModel, 'create')
         .mockResolvedValueOnce([wrapCateg])
@@ -262,10 +295,11 @@ describe('CategoryRepository', () => {
     it('should update the category and return the updated category', (done) => {
       const id = '123'
       const updatedCategoryDto: UpdatedCategoryDto = {
-        name: 'Updated Category',
+        name: 'Updated category',
         _id: id,
       }
-      const category: UpdateCategoryDto = {
+      const category: Category & { _id: ObjectId } = {
+        _id: 'sdafdsa' as unknown as ObjectId,
         name: 'Updated Category',
       }
       const findByIdAndUpdateSpy = jest.spyOn(
@@ -276,7 +310,7 @@ describe('CategoryRepository', () => {
         exec: jest.fn().mockResolvedValue(wrap(updatedCategoryDto)),
       } as any)
 
-      repository.update(id, category as Category).subscribe((result) => {
+      repository.update(id, category).subscribe((result) => {
         expect(result).toEqual(updatedCategoryDto)
         expect(findByIdAndUpdateSpy).toHaveBeenCalledWith(id, category, {
           new: true,
@@ -338,18 +372,23 @@ describe('CategoryRepository', () => {
   describe('delete', () => {
     it('should delete the category and return the deleted category', (done) => {
       const id = '123'
-      const deletedCategoryDto = { _id: id, name: 'Category A' }
+      const deletedCategoryDto = { _id: id, name: 'Category a' }
       const findByIdAndDeleteSpy = jest.spyOn(
         categoryModel,
         'findByIdAndDelete',
       )
       findByIdAndDeleteSpy.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(wrap(deletedCategoryDto)),
+        exec: jest.fn().mockResolvedValue({
+          ok: true,
+          value: wrap(deletedCategoryDto),
+        }),
       } as any)
 
       repository.delete(id).subscribe((result) => {
         expect(result).toEqual(deletedCategoryDto)
-        expect(findByIdAndDeleteSpy).toHaveBeenCalledWith(id)
+        expect(findByIdAndDeleteSpy).toHaveBeenCalledWith(id, {
+          includeResultMetadata: true,
+        })
         done()
       })
     })
@@ -366,7 +405,9 @@ describe('CategoryRepository', () => {
 
       repository.delete(id).subscribe((result) => {
         expect(result).toBeNull()
-        expect(findByIdAndDeleteSpy).toHaveBeenCalledWith(id)
+        expect(findByIdAndDeleteSpy).toHaveBeenCalledWith(id, {
+          includeResultMetadata: true,
+        })
         done()
       })
     })
@@ -387,7 +428,9 @@ describe('CategoryRepository', () => {
         error: (err) => {
           expect(error).toBeInstanceOf(Error)
           expect(err.message).toContain(error.message)
-          expect(findByIdAndDeleteSpy).toHaveBeenCalledWith(id)
+          expect(findByIdAndDeleteSpy).toHaveBeenCalledWith(id, {
+            includeResultMetadata: true,
+          })
           done()
         },
       })

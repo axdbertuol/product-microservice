@@ -3,12 +3,12 @@ import {
   Get,
   Post,
   Body,
-  Put,
   Delete,
   Param,
   Query,
   HttpCode,
   HttpStatus,
+  Patch,
 } from '@nestjs/common'
 import { CategoryService } from '../services/category.service'
 import {
@@ -46,7 +46,7 @@ export class CategoryController implements CRUD {
     return this.categoryService.findAll(name)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   update(
     @Param('id') id: string,

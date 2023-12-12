@@ -4,9 +4,25 @@ content-type: application/json
 {
     "name": "Women\"s Leather Jacket Bonita",
     "description":"A stylish leather jacket for women.",
+    "category": "Clothing",
+    "price": 150
+}
+###
+GET http://localhost:3333/api/v1/product/6513525800fa93928f0112f0 HTTP/1.1
+content-type: application/json
+
+
+###
+PATCH http://localhost:3333/api/v1/product/6513525800fa93928f0112f0 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Women\"s Leather Jacket Bonita",
+    "description":"A stylish leather jacket for women.",
     "category":  "Clothing",
     "price": 150
 }
+
 
 ###
 
@@ -15,6 +31,14 @@ content-type: application/json
 
 {
     "name": "Kitchen"
+}
+###
+
+PATCH http://localhost:3333/api/v1/categories/647c2896ffef2acfe4829a86 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "FurniTure"
 }
 
 ###
@@ -28,7 +52,7 @@ content-type: application/json
 }
 ###
 
-GET http://localhost:3333/api/v1/product?search=leather HTTP/1.1
+GET http://localhost:3333/api/v1/product?search=c HTTP/1.1
 content-type: application/json
 
 ###
@@ -39,5 +63,9 @@ content-type: application/json
 
 ###
 
-GET http://localhost:3333/api/v1/categories?name=a HTTP/1.1
+GET http://localhost:3333/api/v1/categories?name=c HTTP/1.1
+content-type: application/json
+###
+
+GET http://localhost:3333/api/v1/categories HTTP/1.1
 content-type: application/json

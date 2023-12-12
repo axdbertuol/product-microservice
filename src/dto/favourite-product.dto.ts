@@ -1,9 +1,9 @@
 import { IsNotEmpty } from 'class-validator'
-import { ObjectId } from 'mongoose'
+import type { ObjectId } from 'mongoose'
 
 export class FavouriteProductDto {
   @IsNotEmpty()
-  readonly productId: string
+  readonly productId!: string
   @IsNotEmpty()
-  readonly userId: ObjectId
+  readonly userId!: ObjectId
 }

@@ -2,7 +2,8 @@
 .github
 .vscode
 coverage
-docker-compose.yml
+docker-compose.yaml
+docker-compose.ci.yaml
 README.md
 .docker/dbdata
 dist

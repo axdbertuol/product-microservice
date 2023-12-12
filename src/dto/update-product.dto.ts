@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import { ObjectId } from 'mongoose'
 import { Expose, Transform } from 'class-transformer'
-import { IsNotEmpty, MinLength, Validate, ValidateIf } from 'class-validator'
+import { MinLength, ValidateIf } from 'class-validator'
 
 export class UpdateProductDto {
   name?: string
@@ -18,10 +18,10 @@ export class UpdatedProductDto {
   name?: string
   description?: string
   price?: number
-  @Transform(({ value }) => value.toString())
+  @Transform(({ obj }) => obj._id.toString())
   @Expose({ name: 'id' })
-  _id: string
+  _id!: string
 
   @Transform(({ value }) => value.name)
-  category: string
+  category!: string
 }

@@ -1,17 +1,17 @@
-import { CategoryService } from '../../services/category.service'
-import { CategoryRepository } from '../../repository/category.repository'
+import { Test } from '@nestjs/testing'
 import { of, throwError } from 'rxjs'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,
 } from '../../dto/create-category.dto'
+import { FindCategoryDto, FoundCategoryDto } from '../../dto/find-category.dto'
 import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
 } from '../../dto/update-category.dto'
-import { FindCategoryDto } from '../../dto/find-category.dto'
-import { Test } from '@nestjs/testing'
-import { BadRequestException } from '@nestjs/common'
+import { KBaseException } from '../../filters/exceptions/base-exception'
+import { CategoryRepository } from '../../repository/category.repository'
+import { CategoryService } from '../../services/category.service'
 
 describe('CategoryService', () => {
   let categoryService: CategoryService
@@ -42,7 +42,7 @@ describe('CategoryService', () => {
   describe('find', () => {
     it('should return the found category', (done) => {
       const id = '123'
-      const findCategoryDto: FindCategoryDto = {
+      const findCategoryDto: FoundCategoryDto = {
         name: 'Category A',
         _id: id,
       }
@@ -86,7 +86,7 @@ describe('CategoryService', () => {
   describe('findByName', () => {
     it('should return the found categories', (done) => {
       const categoryName = 'Category A'
-      const findCategoryDto: FindCategoryDto[] = [
+      const findCategoryDto: FoundCategoryDto[] = [
         { name: 'Category A', _id: '1' },
         { name: 'Category A', _id: '2' },
       ]
@@ -119,7 +119,7 @@ describe('CategoryService', () => {
 
   describe('findAll', () => {
     it('should return all categories', (done) => {
-      const findCategoryDto: FindCategoryDto[] = [
+      const findCategoryDto: FoundCategoryDto[] = [
         { name: 'Category A', _id: '1' },
         { name: 'Category B', _id: '2' },
       ]
@@ -265,7 +265,7 @@ describe('CategoryService', () => {
 
       categoryService.delete(id).subscribe({
         error: (err) => {
-          expect(err).toBeInstanceOf(BadRequestException)
+          expect(err).toBeInstanceOf(KBaseException)
           done()
         },
       })

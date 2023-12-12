@@ -1,0 +1,17 @@
+APP_NAME=product-microservice
+API_PREFIX=api
+APP_FALLBACK_LANGUAGE=en
+APP_HEADER_LANGUAGE=en
+MONGO_USER=root
+MONGO_PWD=root
+DATABASE_URL=mongodb://root:root@db/product-microservice-db?authSource=admin
+DATABASE_TEST_URL=mongodb://root:root@db/product-microservice-db-test?authSource=admin
+DATABASE_TEST_NAME=product-microservice-db-test
+DEBUG=true
+RABBITMQ_EXCHANGE=my_exchange
+RABBITMQ_KEY=product_microservice_key
+RABBITMQ_URL=amqp://localhost:5672
+
+PRODUCT_DEFAULT_EXCHANGE="product_direct_exchange"
+PRODUCT_ROUTING_KEY="product_microservice_key"
+PRODUCT_ROUTING_UPDATES_KEY="product_microservice_updates_key"
