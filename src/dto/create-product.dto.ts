@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator'
-import { Expose, Transform, Type } from 'class-transformer'
-import { Category } from '@/entities/category.entity'
+import { Expose, Transform } from 'class-transformer'
+import { IsNotEmpty, MinLength } from 'class-validator'
 
 export class CreateProductDto {
   @MinLength(2, { message: 'Name should have at least 2 characters' })

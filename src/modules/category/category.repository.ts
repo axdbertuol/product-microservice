@@ -1,21 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, isObjectIdOrHexString } from 'mongoose'
-import { CRUD } from '../types/base.d'
-import { Category, CategoryDocument } from '../entities/category.entity'
+import { CRUD } from '../../types/base'
+import { Category, CategoryDocument } from './category.entity'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,
-} from '../dto/create-category.dto'
+} from '../../dto/create-category.dto'
 import { Observable, from } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
-import { FoundCategoryDto } from '../dto/find-category.dto'
-import { UpdatedCategoryDto } from '../dto/update-category.dto'
+import { FoundCategoryDto } from '../../dto/find-category.dto'
+import { UpdatedCategoryDto } from '../../dto/update-category.dto'
 import {
   ERRORS,
   FROM,
   KBaseException,
-} from '../filters/exceptions/base-exception'
+} from '../../filters/exceptions/base-exception'
 import { plainToInstance } from 'class-transformer'
 
 @Injectable()

@@ -4,14 +4,14 @@ import {
   CreateCategoryDto,
   CreatedCategoryDto,
 } from '../../dto/create-category.dto'
-import { FindCategoryDto, FoundCategoryDto } from '../../dto/find-category.dto'
+import { FoundCategoryDto } from '../../dto/find-category.dto'
 import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
 } from '../../dto/update-category.dto'
 import { KBaseException } from '../../filters/exceptions/base-exception'
-import { CategoryRepository } from '../../repository/category.repository'
-import { CategoryService } from '../../services/category.service'
+import { CategoryRepository } from '../../modules/category/category.repository'
+import { CategoryService } from '../../modules/category/category.service'
 
 describe('CategoryService', () => {
   let categoryService: CategoryService

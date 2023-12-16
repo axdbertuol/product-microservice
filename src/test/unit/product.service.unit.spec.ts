@@ -11,9 +11,9 @@ import {
   UpdateProductDto,
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
-import { ProductRepository } from '../../repository/product.repository'
-import { CategoryService } from '../../services/category.service'
-import { ProductService } from '../../services/product.service'
+import { ProductRepository } from '../../modules/product/product.repository'
+import { CategoryService } from '../../modules/category/category.service'
+import { ProductService } from '../../modules/product/product.service'
 import { unionBy } from 'lodash'
 
 describe('ProductService', () => {

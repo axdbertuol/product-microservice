@@ -1,19 +1,19 @@
 // product.module.ts
 
 import { HttpStatus, Module } from '@nestjs/common'
-import { ProductController } from './controllers/product.controller'
+import { ProductController } from './product.controller'
 import { MongooseModule } from '@nestjs/mongoose'
-import { Product, ProductSchema } from './entities/product.entity'
-import { ProductService } from './services/product.service'
-import { ProductRepository } from './repository/product.repository'
-import { CategoryModule } from './category.module'
-import { CategoryService } from './services/category.service'
+import { Product, ProductSchema } from './product.entity'
+import { ProductService } from './product.service'
+import { ProductRepository } from './product.repository'
+import { CategoryModule } from '../category/category.module'
+import { CategoryService } from '../category/category.service'
 import { lastValueFrom } from 'rxjs'
 import {
   ERRORS,
   FROM,
   KBaseException,
-} from './filters/exceptions/base-exception'
+} from '../../filters/exceptions/base-exception'
 import { isObjectIdOrHexString } from 'mongoose'
 
 @Module({

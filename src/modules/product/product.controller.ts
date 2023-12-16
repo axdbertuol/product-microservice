@@ -14,12 +14,18 @@ import {
 } from '@nestjs/common'
 import { ApiQuery, ApiTags } from '@nestjs/swagger'
 import { Observable } from 'rxjs'
-import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
-import { FavouriteProductDto } from '../dto/favourite-product.dto'
-import { FindProductDto } from '../dto/find-product.dto'
-import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
-import { ProductService } from '../services/product.service'
-import { ProductControllerInterface } from '../types/controller.d'
+import {
+  CreateProductDto,
+  CreatedProductDto,
+} from '../../dto/create-product.dto'
+import { FavouriteProductDto } from '../../dto/favourite-product.dto'
+import { FindProductDto } from '../../dto/find-product.dto'
+import {
+  UpdateProductDto,
+  UpdatedProductDto,
+} from '../../dto/update-product.dto'
+import { ProductService } from './product.service'
+import { ProductControllerInterface } from '../../types/controller'
 
 @ApiTags('Product')
 @Controller({

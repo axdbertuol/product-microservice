@@ -9,7 +9,7 @@ import { Test } from '@nestjs/testing'
 import { Collection, Connection } from 'mongoose'
 import * as request from 'supertest'
 import { AppModule } from '../src/app.module'
-import { DatabaseService } from '../src/database/database.service'
+import { DatabaseService } from '../src/modules/database/database.service'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,

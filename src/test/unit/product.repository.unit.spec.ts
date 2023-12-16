@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Model, ObjectId } from 'mongoose'
+import { Subscription } from 'rxjs'
 import {
   CreateProductDto,
   CreatedProductDto,
@@ -11,11 +12,13 @@ import {
   UpdateProductDto,
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
-import { Category, CategoryDocument } from '../../entities/category.entity'
-import { Product, ProductDocument } from '../../entities/product.entity'
 import { KBaseException } from '../../filters/exceptions/base-exception'
-import { ProductRepository } from '../../repository/product.repository'
-import { Subscription } from 'rxjs'
+import {
+  Category,
+  CategoryDocument,
+} from '../../modules/category/category.entity'
+import { Product, ProductDocument } from '../../modules/product/product.entity'
+import { ProductRepository } from '../../modules/product/product.repository'
 
 describe('ProductRepository', () => {
   let repository: ProductRepository

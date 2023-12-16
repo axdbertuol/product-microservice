@@ -1,11 +1,11 @@
 // product.module.ts
 
 import { Module } from '@nestjs/common'
-import { CategoryController } from './controllers/category.controller'
-import { CategoryService } from './services/category.service'
-import { CategoryRepository } from './repository/category.repository'
+import { CategoryController } from './category.controller'
+import { CategoryService } from './category.service'
+import { CategoryRepository } from './category.repository'
 import { MongooseModule } from '@nestjs/mongoose'
-import { Category, CategorySchema } from './entities/category.entity'
+import { Category, CategorySchema } from './category.entity'
 
 @Module({
   imports: [

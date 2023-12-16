@@ -10,9 +10,12 @@ import {
   CreateCategoryDto,
   CreatedCategoryDto,
 } from '../../dto/create-category.dto'
-import { Category, CategoryDocument } from '../../entities/category.entity'
+import {
+  Category,
+  CategoryDocument,
+} from '../../modules/category/category.entity'
 import { KBaseException } from '../../filters/exceptions/base-exception'
-import { CategoryRepository } from '../../repository/category.repository'
+import { CategoryRepository } from '../../modules/category/category.repository'
 
 describe('CategoryRepository', () => {
   let repository: CategoryRepository

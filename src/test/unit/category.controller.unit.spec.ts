@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { of, throwError } from 'rxjs'
-import { CategoryController } from '../../controllers/category.controller'
+import { CategoryController } from '../../modules/category/category.controller'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,
@@ -10,11 +10,11 @@ import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
 } from '../../dto/update-category.dto'
-import { CategoryRepository } from '../../repository/category.repository'
-import { CategoryService } from '../../services/category.service'
+import { CategoryRepository } from '../../modules/category/category.repository'
+import { CategoryService } from '../../modules/category/category.service'
 
-jest.mock('../../repository/category.repository')
-jest.mock('../../services/category.service')
+jest.mock('../../modules/category/category.repository')
+jest.mock('../../modules/category/category.service')
 describe('CategoryController', () => {
   let controller: CategoryController
   let categoryService: CategoryService

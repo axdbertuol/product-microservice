@@ -1,8 +1,8 @@
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq'
 import { Module } from '@nestjs/common'
-import { RabbitService } from './services/rabbitmq.service'
 import { ConfigService } from '@nestjs/config'
-import { AllConfigType, RabbitMQConfig } from './config/types'
+import { AllConfigType } from '../../config/types'
+import { RabbitService } from './rabbitmq.service'
 
 @Module({
   imports: [

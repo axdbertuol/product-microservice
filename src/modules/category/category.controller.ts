@@ -1,29 +1,28 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
+  Controller,
   Delete,
-  Param,
-  Query,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
+  Post,
+  Query,
 } from '@nestjs/common'
-import { CategoryService } from '../services/category.service'
+import { ApiQuery, ApiTags } from '@nestjs/swagger'
+import { Observable } from 'rxjs'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,
-} from '../dto/create-category.dto'
+} from '../../dto/create-category.dto'
+import { FindCategoryDto } from '../../dto/find-category.dto'
 import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
-} from '../dto/update-category.dto'
-import { ApiQuery } from '@nestjs/swagger'
-import { FindCategoryDto } from '../dto/find-category.dto'
-import { Observable } from 'rxjs'
-import { CRUD } from '../types/base'
-import { ApiTags } from '@nestjs/swagger'
+} from '../../dto/update-category.dto'
+import { CRUD } from '../../types/base'
+import { CategoryService } from './category.service'
 
 @ApiTags('Categories')
 @Controller({

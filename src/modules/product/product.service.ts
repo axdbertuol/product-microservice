@@ -4,18 +4,24 @@ import { ObjectId } from 'mongoose'
 import { Observable, forkJoin, throwError } from 'rxjs'
 import { catchError, map, mergeMap } from 'rxjs/operators'
 
-import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
-import { FoundCategoryDto } from '../dto/find-category.dto'
-import { FoundProductDto } from '../dto/find-product.dto'
-import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
+import {
+  CreateProductDto,
+  CreatedProductDto,
+} from '../../dto/create-product.dto'
+import { FoundCategoryDto } from '../../dto/find-category.dto'
+import { FoundProductDto } from '../../dto/find-product.dto'
+import {
+  UpdateProductDto,
+  UpdatedProductDto,
+} from '../../dto/update-product.dto'
 import {
   ERRORS,
   FROM,
   KBaseException,
-} from '../filters/exceptions/base-exception'
-import { ProductRepository } from '../repository/product.repository'
-import { ProductServiceInterface } from '../types/service'
-import { CategoryService } from './category.service'
+} from '../../filters/exceptions/base-exception'
+import { ProductRepository } from './product.repository'
+import { ProductServiceInterface } from '../../types/service'
+import { CategoryService } from '../category/category.service'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {

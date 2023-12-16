@@ -3,16 +3,22 @@ import { InjectModel } from '@nestjs/mongoose'
 import mongoose, { Model, ObjectId } from 'mongoose'
 import { Observable, from, throwError } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
-import { CreateProductDto, CreatedProductDto } from '../dto/create-product.dto'
-import { FoundProductDto } from '../dto/find-product.dto'
-import { UpdateProductDto, UpdatedProductDto } from '../dto/update-product.dto'
-import { Product, ProductDocument } from '../entities/product.entity'
+import {
+  CreateProductDto,
+  CreatedProductDto,
+} from '../../dto/create-product.dto'
+import { FoundProductDto } from '../../dto/find-product.dto'
+import {
+  UpdateProductDto,
+  UpdatedProductDto,
+} from '../../dto/update-product.dto'
+import { Product, ProductDocument } from './product.entity'
 import {
   ERRORS,
   FROM,
   KBaseException,
-} from '../filters/exceptions/base-exception'
-import { ProductRepositoryInterface } from '../types/repository'
+} from '../../filters/exceptions/base-exception'
+import { ProductRepositoryInterface } from '../../types/repository'
 import { plainToInstance } from 'class-transformer'
 
 @Injectable()

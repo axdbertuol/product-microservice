@@ -1,22 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { of } from 'rxjs'
-import { ProductController } from '../../controllers/product.controller'
+import { ProductController } from '../../modules/product/product.controller'
 import {
   CreateProductDto,
   CreatedProductDto,
 } from '../../dto/create-product.dto'
-import { FindProductDto, FoundProductDto } from '../../dto/find-product.dto'
+import { FoundProductDto } from '../../dto/find-product.dto'
 import {
   UpdateProductDto,
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
-import { ProductRepository } from '../../repository/product.repository'
-import { CategoryService } from '../../services/category.service'
-import { ProductService } from '../../services/product.service'
+import { ProductRepository } from '../../modules/product/product.repository'
+import { CategoryService } from '../../modules/category/category.service'
+import { ProductService } from '../../modules/product/product.service'
 
-jest.mock('../../repository/product.repository')
-jest.mock('../../repository/category.repository')
-jest.mock('../../services/category.service')
+jest.mock('../../modules/product/product.repository')
+jest.mock('../../modules/category/category.repository')
+jest.mock('../../modules/category/category.service')
 describe('ProductController', () => {
   let controller: ProductController
   let productService: ProductService

@@ -4,20 +4,20 @@ import { catchError, map } from 'rxjs/operators'
 import {
   CreateCategoryDto,
   CreatedCategoryDto,
-} from '../dto/create-category.dto'
-import { FindCategoryDto, FoundCategoryDto } from '../dto/find-category.dto'
+} from '../../dto/create-category.dto'
+import { FindCategoryDto, FoundCategoryDto } from '../../dto/find-category.dto'
 import {
   UpdateCategoryDto,
   UpdatedCategoryDto,
-} from '../dto/update-category.dto'
-import { Category } from '../entities/category.entity'
+} from '../../dto/update-category.dto'
+import { Category } from './category.entity'
 import {
   ERRORS,
   FROM,
   KBaseException,
-} from '../filters/exceptions/base-exception'
-import { CategoryRepository } from '../repository/category.repository'
-import { CRUD } from '../types/base.d'
+} from '../../filters/exceptions/base-exception'
+import { CategoryRepository } from './category.repository'
+import { CRUD } from '../../types/base'
 
 @Injectable()
 export class CategoryService implements CRUD {
