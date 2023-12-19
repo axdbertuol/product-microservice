@@ -19,9 +19,12 @@ import {
   FROM,
   KBaseException,
 } from '../../filters/exceptions/base-exception'
-import { ProductRepository } from './product.repository'
 import { ProductServiceInterface } from '../../types/service'
 import { CategoryService } from '../category/category.service'
+import { ProductRepository } from './product.repository'
+
+import { QueryProductDto } from '../../dto/query-product.dto'
+import { PaginatedResult } from '../../types/base'
 
 @Injectable()
 export class ProductService implements ProductServiceInterface {
@@ -74,6 +77,13 @@ export class ProductService implements ProductServiceInterface {
     return this.productRepository
       .findAll()
       .pipe(catchError((err) => throwError(() => err)))
+  }
+
+  findManyWithPagination(
+    query: QueryProductDto,
+  ): Observable<PaginatedResult<FoundProductDto[]>> {
+    console.log('query service', query)
+    return this.productRepository.findManyWithPagination(query)
   }
 
   findAllByCategoryAndName(

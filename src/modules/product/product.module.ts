@@ -1,20 +1,20 @@
 // product.module.ts
 
 import { HttpStatus, Module } from '@nestjs/common'
-import { ProductController } from './product.controller'
 import { MongooseModule } from '@nestjs/mongoose'
-import { Product, ProductSchema } from './product.entity'
-import { ProductService } from './product.service'
-import { ProductRepository } from './product.repository'
-import { CategoryModule } from '../category/category.module'
-import { CategoryService } from '../category/category.service'
+import { isObjectIdOrHexString } from 'mongoose'
 import { lastValueFrom } from 'rxjs'
 import {
   ERRORS,
   FROM,
   KBaseException,
 } from '../../filters/exceptions/base-exception'
-import { isObjectIdOrHexString } from 'mongoose'
+import { CategoryModule } from '../category/category.module'
+import { CategoryService } from '../category/category.service'
+import { ProductController } from './product.controller'
+import { Product, ProductSchema } from './product.entity'
+import { ProductRepository } from './product.repository'
+import { ProductService } from './product.service'
 
 @Module({
   imports: [
@@ -51,7 +51,7 @@ import { isObjectIdOrHexString } from 'mongoose'
                 if (!foundCategory) {
                   return next(
                     new KBaseException(
-                      FROM.service,
+                      FROM.presave,
                       ERRORS.invalidOrUndefinedData,
                       HttpStatus.PRECONDITION_FAILED,
                     ),
@@ -62,10 +62,10 @@ import { isObjectIdOrHexString } from 'mongoose'
               } catch (error) {
                 next(
                   new KBaseException(
-                    FROM.service,
+                    FROM.presave,
                     ERRORS.unexpected,
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    { path: 'product.presave.hook' },
+                    { path: 'product' },
                   ),
                 )
               }

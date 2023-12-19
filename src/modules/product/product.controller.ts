@@ -19,18 +19,25 @@ import {
   CreatedProductDto,
 } from '../../dto/create-product.dto'
 import { FavouriteProductDto } from '../../dto/favourite-product.dto'
-import { FindProductDto } from '../../dto/find-product.dto'
+import { FindProductDto, FoundProductDto } from '../../dto/find-product.dto'
+import { QueryProductDto } from '../../dto/query-product.dto'
 import {
   UpdateProductDto,
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
-import { ProductService } from './product.service'
+import { PaginatedResult } from '../../types/base'
 import { ProductControllerInterface } from '../../types/controller'
+import { ProductService } from './product.service'
 
 @ApiTags('Product')
 @Controller({
   path: 'product',
   version: '1',
+})
+@SerializeOptions({
+  excludePrefixes: ['__'],
+
+  // excludeExtraneousValues: true,
 })
 export class ProductController implements ProductControllerInterface {
   constructor(private readonly productService: ProductService) {}
@@ -48,8 +55,16 @@ export class ProductController implements ProductControllerInterface {
   findAll(
     @Query('cat') categoryName?: string,
     @Query('search') search?: string,
-  ): Observable<FindProductDto[] | null | string> {
+  ): Observable<FindProductDto[] | null> {
     return this.productService.findAll(search, categoryName)
+  }
+  @Post('/pag')
+  @HttpCode(HttpStatus.OK)
+  findManyWithPagination(
+    @Body() body: QueryProductDto,
+  ): Observable<PaginatedResult<FoundProductDto[]>> {
+    console.log(body)
+    return this.productService.findManyWithPagination(body)
   }
 
   @Post()
@@ -61,11 +76,6 @@ export class ProductController implements ProductControllerInterface {
     return this.productService.create(product)
   }
 
-  @SerializeOptions({
-    excludePrefixes: ['_'],
-
-    // excludeExtraneousValues: true,
-  })
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   update(
@@ -75,20 +85,12 @@ export class ProductController implements ProductControllerInterface {
     return this.productService.update(id, product)
   }
 
-  @SerializeOptions({
-    excludePrefixes: ['_'],
-    // excludeExtraneousValues: true,
-  })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   delete(@Param('id') id: string): Observable<null | string> {
     return this.productService.delete(id)
   }
 
-  @SerializeOptions({
-    excludePrefixes: ['_'],
-    // excludeExtraneousValues: true,
-  })
   @Post('favourite')
   @HttpCode(HttpStatus.OK)
   favourite(

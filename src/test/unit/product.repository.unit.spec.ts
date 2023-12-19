@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Model, ObjectId } from 'mongoose'
+import { Model, ObjectId, SortOrder } from 'mongoose'
 import { Subscription } from 'rxjs'
 import {
   CreateProductDto,
@@ -19,6 +19,9 @@ import {
 } from '../../modules/category/category.entity'
 import { Product, ProductDocument } from '../../modules/product/product.entity'
 import { ProductRepository } from '../../modules/product/product.repository'
+import { QueryProductDto, SortProductDto } from '../../dto/query-product.dto'
+import { transform } from 'lodash'
+import { exec } from 'child_process'
 
 describe('ProductRepository', () => {
   let repository: ProductRepository
@@ -45,6 +48,79 @@ describe('ProductRepository', () => {
 
   afterEach(() => {
     jest.resetAllMocks()
+  })
+
+  describe('findManyWithPagination', () => {
+    let findSubscription: Subscription = new Subscription()
+    afterEach(() => {
+      findSubscription.unsubscribe()
+    })
+
+    it('should return products with proper sorting and pagination', (done) => {
+      const mockProducts = [
+        {
+          _id: 'mockId',
+          name: 'testa',
+          category: { name: 'x', _id: 'xasf' } as unknown as CategoryDocument,
+        },
+        {
+          _id: 'mockId2',
+          name: 'testc',
+          category: { name: 'z', _id: 'xasf2' } as unknown as CategoryDocument,
+        },
+        {
+          _id: 'mockId1',
+          name: 'testb',
+          category: { name: 'y', _id: 'xasf1' } as unknown as CategoryDocument,
+        },
+      ].map((obj) => wrap(obj))
+
+      const expectedResult = mockProducts
+        .sort((pA, pB) => {
+          const nameA = pA.name || '' // Use an empty string if 'name' is undefined
+          const nameB = pB.name || ''
+
+          return nameA.localeCompare(nameB)
+        })
+        .map((prod) => ({
+          ...prod,
+          category: prod.category,
+        }))
+      jest.spyOn(productModel, 'find').mockReturnValue({
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        transform: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        countDocuments: jest.fn().mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValueOnce(expectedResult.length),
+        }),
+        exec: jest.fn().mockResolvedValueOnce(expectedResult),
+      } as any)
+
+      const query = {
+        filters: { name: 'test' },
+        limit: 10,
+        page: 1,
+        sort: [
+          {
+            orderBy: 'name',
+            order: 'asc',
+          } as SortProductDto,
+        ],
+      } as QueryProductDto
+
+      findSubscription = repository
+        .findManyWithPagination(query)
+        .subscribe((result) => {
+          expect(result).toBeDefined() // Add more specific expectations based on your logic
+          expect(result.data).toEqual(expect.arrayContaining(mockProducts))
+          expect(result.page).toEqual(query.page)
+          expect(result.limit).toEqual(query.limit)
+          expect(result.totalCount).toEqual(expectedResult.length)
+          done()
+        })
+    })
   })
 
   describe('find', () => {

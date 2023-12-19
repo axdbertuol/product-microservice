@@ -1,25 +1,27 @@
+import { PaginatedResult } from '@/types/base'
 import { ConflictException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import mongoose, { Model, ObjectId } from 'mongoose'
-import { Observable, from, throwError } from 'rxjs'
-import { catchError, map } from 'rxjs/operators'
+import { plainToInstance } from 'class-transformer'
+import mongoose, { Model, ObjectId, SortOrder } from 'mongoose'
+import { Observable, forkJoin, from, of, throwError } from 'rxjs'
+import { catchError, map, mergeMap } from 'rxjs/operators'
 import {
   CreateProductDto,
   CreatedProductDto,
 } from '../../dto/create-product.dto'
 import { FoundProductDto } from '../../dto/find-product.dto'
+import { QueryProductDto } from '../../dto/query-product.dto'
 import {
   UpdateProductDto,
   UpdatedProductDto,
 } from '../../dto/update-product.dto'
-import { Product, ProductDocument } from './product.entity'
 import {
   ERRORS,
   FROM,
   KBaseException,
 } from '../../filters/exceptions/base-exception'
 import { ProductRepositoryInterface } from '../../types/repository'
-import { plainToInstance } from 'class-transformer'
+import { Product, ProductDocument } from './product.entity'
 
 @Injectable()
 export class ProductRepository implements ProductRepositoryInterface {
@@ -50,7 +52,7 @@ export class ProductRepository implements ProductRepositoryInterface {
           if (err instanceof mongoose.Error.CastError) {
             throw new KBaseException(
               FROM.repo,
-              ERRORS.unexpected,
+              ERRORS.cast,
               HttpStatus.UNPROCESSABLE_ENTITY,
               {
                 message: err.message,
@@ -88,8 +90,8 @@ export class ProductRepository implements ProductRepositoryInterface {
         return plainToInstance(
           FoundProductDto,
           docs
-            .map((doc) => doc.toJSON({ flattenObjectIds: true }))
-            .filter((doc) => Boolean(doc.category)),
+            .filter((doc) => Boolean(doc.category))
+            .map((doc) => doc.toJSON({ flattenObjectIds: true })),
         )
       }),
       catchError((err) =>
@@ -97,7 +99,7 @@ export class ProductRepository implements ProductRepositoryInterface {
           if (err instanceof mongoose.Error.CastError) {
             throw new KBaseException(
               FROM.repo,
-              ERRORS.unexpected,
+              ERRORS.cast,
               HttpStatus.UNPROCESSABLE_ENTITY,
               {
                 message: err.message,
@@ -156,7 +158,7 @@ export class ProductRepository implements ProductRepositoryInterface {
           if (err instanceof mongoose.Error.CastError) {
             throw new KBaseException(
               FROM.repo,
-              ERRORS.unexpected,
+              ERRORS.cast,
               HttpStatus.UNPROCESSABLE_ENTITY,
               {
                 message: err.message,
@@ -207,7 +209,7 @@ export class ProductRepository implements ProductRepositoryInterface {
           if (err instanceof mongoose.Error.CastError) {
             throw new KBaseException(
               FROM.repo,
-              ERRORS.unexpected,
+              ERRORS.cast,
               HttpStatus.UNPROCESSABLE_ENTITY,
               {
                 message: err.message,
@@ -237,8 +239,8 @@ export class ProductRepository implements ProductRepositoryInterface {
         return plainToInstance(
           FoundProductDto,
           docs
-            .map((doc) => doc.toJSON({ flattenObjectIds: true }))
-            .filter((doc) => Boolean(doc.category)),
+            .filter((doc) => Boolean(doc.category))
+            .map((doc) => doc.toJSON({ flattenObjectIds: true })),
         )
       }),
       catchError((err) =>
@@ -246,7 +248,7 @@ export class ProductRepository implements ProductRepositoryInterface {
           if (err instanceof mongoose.Error.CastError) {
             throw new KBaseException(
               FROM.repo,
-              ERRORS.unexpected,
+              ERRORS.cast,
               HttpStatus.UNPROCESSABLE_ENTITY,
               {
                 message: err.message,
@@ -265,6 +267,118 @@ export class ProductRepository implements ProductRepositoryInterface {
           )
         }),
       ),
+    )
+  }
+
+  findManyWithPagination({
+    filters,
+    limit,
+    page,
+    sort,
+    inclusive,
+  }: QueryProductDto): Observable<PaginatedResult<FoundProductDto[]>> {
+    const mongoQuery = []
+    let price = null
+    page = page || 1
+    limit = limit || 10
+    if (filters?.price) {
+      const { min, max } = filters?.price
+      if (min && max) {
+        price = { $gte: min, $lte: max }
+      } else if (min) {
+        price = { $gte: min }
+      } else if (max) {
+        price = { $lte: max }
+      }
+      mongoQuery.push({ price })
+    }
+
+    if (filters?.name) {
+      mongoQuery.push({
+        name: { $regex: filters?.name, $options: 'i' },
+      })
+    }
+
+    const logicalOp = inclusive ? '$or' : '$and'
+
+    const defaultSort = { orderBy: 'name', order: 'asc' }
+    const sortOptions = (sort || [defaultSort])
+      .map(({ orderBy, order }) =>
+        orderBy ? [orderBy, order ?? ('asc' as SortOrder)] : null,
+      )
+      .filter(Boolean) as [string, SortOrder][]
+
+    const popOptions = {
+      path: 'category',
+      ...(filters?.category && {
+        match: {
+          name: { $regex: filters?.category, $options: 'i' },
+        },
+      }),
+    }
+
+    const finalQuery =
+      mongoQuery.length > 0
+        ? {
+            [logicalOp]: mongoQuery,
+          }
+        : {}
+    console.log('oi')
+    const paginatedQueryObservable = from(
+      this.productModel
+        .find(finalQuery)
+        .populate(popOptions)
+        .sort(sortOptions)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .transform((products) => {
+          return plainToInstance(
+            FoundProductDto,
+            products
+              .filter((doc) => Boolean(doc.category))
+              .map((product) => product.toJSON({ flattenObjectIds: true })),
+          )
+        })
+        .exec(),
+    )
+
+    const countObs = from(
+      this.productModel.find(finalQuery).countDocuments().exec(),
+    )
+    return forkJoin([paginatedQueryObservable, countObs]).pipe(
+      mergeMap(([products, count]) => {
+        console.log(products)
+        const mappedResult = {
+          data: products,
+          page,
+          limit,
+          totalCount: count,
+        } as PaginatedResult<FoundProductDto[]>
+
+        return of(mappedResult)
+      }),
+      catchError((err) => {
+        if (err instanceof mongoose.Error.CastError) {
+          throw new KBaseException(
+            FROM.repo,
+            ERRORS.cast,
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            {
+              message: err.message,
+              path: err.path,
+            },
+          )
+        }
+        throw new KBaseException(
+          FROM.repo,
+          ERRORS.unexpected,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          {
+            message: err.message,
+            path: err.path,
+          },
+        )
+      }),
     )
   }
 

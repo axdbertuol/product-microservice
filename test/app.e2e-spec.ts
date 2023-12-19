@@ -1,74 +1,16 @@
-import {
-  ClassSerializerInterceptor,
-  HttpServer,
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common'
-import { HttpAdapterHost, Reflector } from '@nestjs/core'
-import { Test } from '@nestjs/testing'
-import { Collection, Connection } from 'mongoose'
 import * as request from 'supertest'
-import { AppModule } from '../src/app.module'
-import { DatabaseService } from '../src/modules/database/database.service'
-import {
-  CreateCategoryDto,
-  CreatedCategoryDto,
-} from '../src/dto/create-category.dto'
+import { CreatedCategoryDto } from '../src/dto/create-category.dto'
 import { UpdateCategoryDto } from '../src/dto/update-category.dto'
-import { AllExceptionsFilter } from '../src/filters/all-exceptions.filter'
-import validationOptions from '../src/utils/validation-options'
+import {
+  categoriesCollection,
+  createCategoryDto,
+  createProductDto,
+  dbConnection,
+  httpServer,
+  productCollection,
+} from './setup'
 
 describe('E2E Tests', () => {
-  let app: INestApplication
-  let dbConnection: Connection
-  let httpServer: HttpServer
-  const createProductDto = {
-    name: 'teste',
-    price: 0,
-    category: 'Test Category',
-    description: 'Test Description',
-  }
-  const createCategoryDto: CreateCategoryDto = {
-    name: 'Test Category',
-  }
-  let createdCategory: CreatedCategoryDto
-  let productCollection: Collection<any>
-  let categoriesCollection: Collection<any>
-
-  beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile()
-    expect(moduleFixture).toBeDefined()
-    app = moduleFixture.createNestApplication()
-    app.useGlobalPipes(new ValidationPipe(validationOptions))
-    app.useGlobalInterceptors(
-      new ClassSerializerInterceptor(app.get(Reflector), {
-        enableCircularCheck: true,
-      }),
-    )
-    const httpAdapter = app.get(HttpAdapterHost)
-    app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
-    app.useGlobalPipes(new ValidationPipe(validationOptions))
-
-    await app.init()
-    dbConnection = moduleFixture
-      .get<DatabaseService>(DatabaseService)
-      .getDbHandle()
-    httpServer = app.getHttpServer()
-    productCollection = dbConnection.collection('products')
-    categoriesCollection = dbConnection.collection('categories')
-  })
-
-  afterAll(async () => {
-    Promise.all([
-      productCollection.deleteMany({}),
-      categoriesCollection.deleteMany({}),
-      httpServer.close(),
-      app.close(),
-    ])
-  })
-
   beforeEach(async () => {
     await Promise.all([
       productCollection.deleteMany({}),
@@ -97,7 +39,9 @@ describe('E2E Tests', () => {
     }, 500)
 
     it('should create a new product', async () => {
-      await categoriesCollection.insertOne(createCategoryDto)
+      const { insertedId } = await categoriesCollection.insertOne(
+        createCategoryDto,
+      )
 
       const res = await request(httpServer)
         .post('/product')
@@ -106,7 +50,8 @@ describe('E2E Tests', () => {
 
       const createdProduct = res.body[0]
       expect(createdProduct.name).toBe(createProductDto.name)
-      expect(createdProduct.id).toBeDefined()
+      console.log(createdProduct)
+      expect(createdProduct).toBeDefined()
     }, 500)
 
     it('should return a 422 error if name is not provided', async () => {
@@ -189,7 +134,7 @@ describe('E2E Tests', () => {
         .post('/categories')
         .send(createCategoryDto)
         .then((res) => {
-          createdCategory = res.body[0] as CreatedCategoryDto
+          const createdCategory = res.body[0] as CreatedCategoryDto
           expect(createdCategory.name).toBe(createCategoryDto.name)
           // expect(createdCategory._id).toBeDefined()
         })

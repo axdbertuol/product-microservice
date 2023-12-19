@@ -10,6 +10,7 @@ export enum ERRORS {
 export enum FROM {
   repo = 'repository',
   service = 'service',
+  presave = 'presave',
 }
 export class KBaseException extends HttpException {
   constructor(

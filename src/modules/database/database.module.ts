@@ -8,8 +8,9 @@ import { IsExist } from './is-exists.validator'
   imports: [
     MongooseModule.forRootAsync({
       useFactory: (configService: ConfigService<AllConfigType>) => ({
-        connectionFactory: (connection) => {
-          connection.plugin(() => import('mongoose-autopopulate'))
+        connectionFactory: async (connection) => {
+          connection.plugin(async () => await import('mongoose-autopopulate'))
+          console.log('connection', connection.plugins)
           return connection
         },
         uri:

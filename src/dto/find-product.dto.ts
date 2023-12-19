@@ -22,6 +22,9 @@ export class FoundProductDto extends FindProductDto {
     return obj._id.toString()
   })
   _id!: string
-  @Transform(({ value }) => value.name)
+  @Transform(({ obj, value }) => {
+    return obj.category?.name ?? obj.category ?? value ?? value?.name ?? null
+  })
+  @IsString()
   category?: string
 }
