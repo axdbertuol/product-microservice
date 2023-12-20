@@ -31,7 +31,7 @@ export class FilterProductDto implements FindManyProductFilters {
 }
 
 export class SortProductDto {
-  @ApiProperty()
+  @ApiProperty({ type: String })
   @IsString()
   orderBy!: keyof FindProductDto | 'id'
 
@@ -60,7 +60,6 @@ export class QueryProductDto {
   @ApiProperty({ type: FilterProductDto, required: false })
   @IsOptional()
   @Transform(({ value }) => {
-    console.log(value)
     return value ? plainToInstance(FilterProductDto, value) : undefined
   })
   @ValidateNested()
@@ -70,7 +69,6 @@ export class QueryProductDto {
   @ApiProperty({ type: Array.of(SortProductDto), required: false })
   @IsOptional()
   @Transform(({ value }) => {
-    console.log(value)
     return value ? plainToInstance(SortProductDto, value) : undefined
   })
   @ValidateNested({ each: true })
@@ -79,7 +77,7 @@ export class QueryProductDto {
 
   @ApiProperty()
   @IsOptional()
-  inclusive?: boolean
+  inclusive?: boolean = false
 }
 
 export class FindManyWithPaginationBody {

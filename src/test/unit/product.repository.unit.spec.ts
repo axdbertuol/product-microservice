@@ -1,13 +1,14 @@
 import { HttpStatus } from '@nestjs/common'
 import { getModelToken } from '@nestjs/mongoose'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Model, ObjectId, SortOrder } from 'mongoose'
+import { Model, ObjectId } from 'mongoose'
 import { Subscription } from 'rxjs'
 import {
   CreateProductDto,
   CreatedProductDto,
 } from '../../dto/create-product.dto'
 import { FoundProductDto } from '../../dto/find-product.dto'
+import { QueryProductDto, SortProductDto } from '../../dto/query-product.dto'
 import {
   UpdateProductDto,
   UpdatedProductDto,
@@ -19,9 +20,6 @@ import {
 } from '../../modules/category/category.entity'
 import { Product, ProductDocument } from '../../modules/product/product.entity'
 import { ProductRepository } from '../../modules/product/product.repository'
-import { QueryProductDto, SortProductDto } from '../../dto/query-product.dto'
-import { transform } from 'lodash'
-import { exec } from 'child_process'
 
 describe('ProductRepository', () => {
   let repository: ProductRepository

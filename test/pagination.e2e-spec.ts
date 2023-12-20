@@ -1,14 +1,9 @@
+import { every } from 'lodash'
 import * as request from 'supertest'
 import { QueryProductDto } from '../src/dto/query-product.dto'
-import { httpServer, mockProducts, productCollection } from './setup'
+import { httpServer, mockProducts } from './setup'
 
 describe('Pagination E2E', () => {
-  // let mockProducts
-  afterEach(async () => {
-    expect((await productCollection.find().toArray()).length).toBe(
-      mockProducts.length,
-    )
-  })
   it('should paginate correctly', async () => {
     const response = await request(httpServer)
       .post('/product/pag')
@@ -17,7 +12,6 @@ describe('Pagination E2E', () => {
     expect(response.body.data.length).toBe(Math.floor(mockProducts.length / 2))
   }, 1500)
   it('should filter by name', async () => {
-    expect((await productCollection.find().toArray()).length).toBe(11)
     const response = await request(httpServer)
       .post('/product/pag')
       .send({
@@ -25,7 +19,6 @@ describe('Pagination E2E', () => {
         limit: 5,
         filters: { name: 'test' },
       } as QueryProductDto)
-    console.log(response.body)
     expect(response.status).toBe(200)
     expect(response.body.totalCount).toBe(mockProducts.length - 1)
   }, 1500)
@@ -36,14 +29,28 @@ describe('Pagination E2E', () => {
         page: 1,
         limit: 10,
         filters: { price: { min: 10, max: 50 } },
-        inclusive: true,
       } as QueryProductDto)
-    console.log()
     expect(response.status).toBe(200)
-    expect(response.body.totalCount).toBe(
-      response.body.data.filter(
-        (pr: { price: number }) => pr.price >= 10 && pr.price <= 50,
-      ).length,
-    )
+    expect(
+      every(response.body.data, ({ price }) => {
+        return price >= 10 && price <= 50
+      }),
+    ).toBeTruthy()
+  }, 1500)
+  it('should filter by category', async () => {
+    const response = await request(httpServer)
+      .post('/product/pag')
+      .send({
+        page: 1,
+        limit: 12,
+        filters: { category: 'Test Category' },
+      } as QueryProductDto)
+    expect(response.status).toBe(200)
+
+    expect(
+      every(response.body.data, {
+        category: 'Test Category',
+      }),
+    ).toBeTruthy()
   }, 1500)
 })

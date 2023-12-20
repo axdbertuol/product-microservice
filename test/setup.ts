@@ -69,15 +69,25 @@ async function setup() {
   productCollection = dbConnection.collection('products')
 
   await lastValueFrom(
-    from(categoriesCollection.insertOne(createCategoryDto)).pipe(
+    from(
+      categoriesCollection.insertMany([createCategoryDto, { name: 'Other' }]),
+    ).pipe(
       mergeMap((v) => {
-        mapCategoryNameToId.set('Test Category', v.insertedId.toString())
-        return productCollection.insertMany(
-          mockProducts.map((p) => ({ ...p, category: v.insertedId })),
-          {
-            ordered: false,
-          },
-        )
+        mapCategoryNameToId.set('Test Category', v.insertedIds?.[0].toString())
+        mapCategoryNameToId.set('Other', v.insertedIds?.[1].toString())
+        const prods = mockProducts.map((p) => ({
+          ...p,
+          category: v.insertedIds?.[0].toString(),
+        }))
+        prods.push({
+          name: 'xis',
+          category: v.insertedIds?.[1].toString(),
+          price: 25,
+          description: 'Something',
+        })
+        return productCollection.insertMany(prods, {
+          ordered: false,
+        })
       }),
     ),
   )
