@@ -1,4 +1,4 @@
-FROM node:18-alpine3.19 as development
+FROM node:20-alpine3.19 as development
 ARG NODE_ENV=development
 ENV NODE_ENV=${NODE_ENV}
 RUN apk add --no-cache bash git openssh-client
