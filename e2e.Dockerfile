@@ -1,4 +1,4 @@
-FROM node:18-alpine3.19 as development
+FROM node:20-alpine3.19 as development
 
 RUN apk add --no-cache bash git openssh-client
 RUN npm i -g pnpm @nestjs/cli typescript ts-node
