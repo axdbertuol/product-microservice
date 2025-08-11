@@ -41,7 +41,7 @@
     "lodash": "^4.17.21",
     "mongoose": "^8.0.3",
     "mongoose-autopopulate": "^1.1.0",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.2.0",
     "rimraf": "^5.0.5",
     "rxjs": "^7.8.1"
   },
